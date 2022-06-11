@@ -5,8 +5,11 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 
 // Windows Includes.
-#include <Windows/WindowsHWrapper.h>
-#include "winuser.h"
+#include "Windows/WindowsWindow.h"
+#include "Windows/WindowsHWrapper.h"
+#include "Windows/AllowWindowsPlatformTypes.h" 
+#include "Windows/HideWindowsPlatformTypes.h"
+#include "shellapi.h"								// File Drag Drop Callback.
 
 // UE Includes.
 #include "Widgets/SWindow.h"

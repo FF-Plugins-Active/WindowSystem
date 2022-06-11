@@ -9,6 +9,8 @@
 // UE Includes.
 #include "Slate/WidgetRenderer.h"		// Widget to Texture 2D
 
+#include "GenericPlatform/GenericApplication.h"
+
 UWindowSystemBPLibrary::UWindowSystemBPLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {

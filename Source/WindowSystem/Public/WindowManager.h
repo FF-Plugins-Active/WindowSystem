@@ -7,7 +7,6 @@
 #include "WindowSystemBPLibrary.h"
 #include "WindowManager.generated.h"
 
-
 UCLASS()
 class WINDOWSYSTEM_API AWindowManager : public AActor
 {
@@ -24,9 +23,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-public:	
-
+	// Window Movement Delegate
 	void NotifyWindowMoved(const TSharedRef<SWindow>& Window);
+	
+	// Window Close Delegate
 	void NotifyWindowClosed(const TSharedRef<SWindow>& Window);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
@@ -37,7 +37,6 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
 	void OnWindowClosed(FName const& ClassName);
-
 
 public:
 
@@ -60,10 +59,9 @@ public:
 	virtual bool SetAllWindowsOpacities(float NewOpacity);
 
 public:
-
 	/*
-	We use this to record windows.
-	DO NOT CHANGE THIS IN EDITOR ! USE ONLY WITH BLUEPRINTS !
+	* We use this to record windows.
+	* DO NOT CHANGE THIS IN EDITOR ! USE ONLY WITH BLUEPRINTS !
 	*/
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	TMap<FName, UWindowObject*> MAP_Windows;

@@ -1,20 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "WindowManager.h"
-
-// Windows Includes.
-#include "shellapi.h"
-#include "Windows/WindowsWindow.h"
-#include "Windows/WindowsPlatformApplicationMisc.h"
-#include "Windows/AllowWindowsPlatformTypes.h"
 
 // UE Includes.
 #include "HAL/UnrealMemory.h"
 
 // Global variables.
 AWindowManager* Global_FileDropOuter;	// File Drop: Outer.
-int FileDropOpacity = 1;				// File Drop: Handle Opacity: It should NOT be equal to ZERO (0). Because it will remove that layer. If it equal with 1, we will still have it also user won't be able to see it.
+int Global_FileDropOpacity = 1;			// File Drop: Handle Opacity: It should NOT be equal to ZERO (0). Because it will remove that layer. If it equal with 1, we will still have it also user won't be able to see it.
 
 // Sets default values
 AWindowManager::AWindowManager()
@@ -62,7 +55,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg)
 	{
 	case WM_CREATE:
-		SetLayeredWindowAttributes(hwnd, 0, (255 * FileDropOpacity) / 100, LWA_ALPHA);
+		SetLayeredWindowAttributes(hwnd, 0, (255 * Global_FileDropOpacity) / 100, LWA_ALPHA);
 		break;
 
 	case WM_CLOSE:
@@ -82,7 +75,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				Array_Paths.Add(temp_string.c_str());
 			}
 		}
-
+		
 		Global_FileDropOuter->OnFileDrop(Array_Paths);
 		DragFinish(DropInfo);
 		break;
@@ -304,7 +297,7 @@ bool AWindowManager::SetFileDropOpacity(int32 InFileDropOpacity)
 {
 	if (InFileDropOpacity > 0 == true)
 	{
-		FileDropOpacity = InFileDropOpacity;
+		Global_FileDropOpacity = InFileDropOpacity;
 		return true;
 	}
 
