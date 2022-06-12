@@ -3,9 +3,6 @@
 #include "WindowSystemBPLibrary.h"
 #include "WindowSystem.h"
 
-// Windows Includes.
-#include "shellapi.h"
-
 // UE Includes.
 #include "Slate/WidgetRenderer.h"		// Widget to Texture 2D
 
@@ -68,48 +65,6 @@ bool UWindowSystemBPLibrary::BringWindowFront(UPARAM(ref)UWindowObject*& InWindo
 			}
 
 			return true;
-		}
-
-		else
-		{
-			return false;
-		}
-	}
-
-	else
-	{
-		return false;
-	}
-}
-
-// Helper function for File Drop System.
-bool UWindowSystemBPLibrary::SetFileDropSize(UPARAM(ref)UWindowObject*& InWindowObject, int32 X_Multiplier, int32 Y_Multiplier)
-{
-	if (IsValid(InWindowObject) == true)
-	{
-		if (InWindowObject->WindowPtr.IsValid() == true)
-		{
-			if (InWindowObject->bIsFileDropEnabled == true)
-			{
-				FVector2D CurrentSize = InWindowObject->WindowPtr->GetClientSizeInScreen();
-				SetWindowPos
-				(
-					InWindowObject->FileDropWindowHandle,																												// Old Window Handle.
-					InWindowObject->FileDropWindowHandle,																												// New Window Handle.
-					0,																																					// X Position.
-					InWindowObject->WindowPtr->GetTitleBarSize().Get(),																									// Y Position.
-					CurrentSize.X - (InWindowObject->Border.Left + InWindowObject->Border.Right) * X_Multiplier,														// X Size.
-					CurrentSize.Y - InWindowObject->WindowPtr->GetTitleBarSize().Get() - ((InWindowObject->Border.Top + InWindowObject->Border.Bottom) * Y_Multiplier),	// Y Size.
-					SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE																											// Flags.
-				);
-
-				return true;
-			}
-
-			else
-			{
-				return false;
-			}
 		}
 
 		else
@@ -362,6 +317,21 @@ bool UWindowSystemBPLibrary::GetWindowTitle(UPARAM(ref)UWindowObject*& InWindowO
 	{
 		OutWindowTitle = FText::FromString(TEXT(""));
 		return false;
+	}
+}
+
+bool UWindowSystemBPLibrary::GetMainWindowTitle(FText& OutWindowTitle)
+{
+	OutWindowTitle = GEngine->GameViewport->GetWindow().ToSharedRef().Get().GetTitle();
+
+	if (OutWindowTitle.IsEmpty() == true)
+	{
+		return false;
+	}
+
+	else
+	{
+		return true;
 	}
 }
 

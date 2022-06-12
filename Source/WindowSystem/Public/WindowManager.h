@@ -16,6 +16,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// Called when the game ends or when destroyed
+	virtual void EndPlay(EEndPlayReason::Type Reason) override;
+
 public:	
 	// Sets default values for this actor's properties
 	AWindowManager();
@@ -30,7 +33,7 @@ public:
 	void NotifyWindowClosed(const TSharedRef<SWindow>& Window);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
-	void OnFileDrop(TArray<FString> const& Array_FilePaths);
+	void OnFileDrop(TArray<FDroppedFileStruct> const& OutMap);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
 	void OnWindowMoved(FName const& ClassName);
@@ -52,9 +55,6 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Detect Hovered Window", Keywords = "detect, hovered, window"), Category = "Window System|Check")
 	virtual void DetectHoveredWindow(bool bPrintDetected, FDelegateDetectHovered DelegateHovered);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set File Drop Opacity", ToolTip = "Function should used only in construction script. Value should NOT be equal to zero (0). Because it deletes file drop handle. 1 is enough to create a transparent handle. Also we don't allow to define smaller or equal to/from zero.", Keywords = "set, file, drop, opacity"), Category = "Window System|Set|File Drop")
-	virtual bool SetFileDropOpacity(int32 InFileDropOpacity);
-
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set All Windows Opacities", Keywords = "set, all, window, windows, opacity"), Category = "Window System|Set")
 	virtual bool SetAllWindowsOpacities(float NewOpacity);
 
@@ -66,4 +66,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	TMap<FName, UWindowObject*> MAP_Windows;
 
+	// Constructed message handler subclass for main window.
+	FDragDropHandler MW_DragDropHandler;
 };

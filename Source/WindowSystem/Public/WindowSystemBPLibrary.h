@@ -4,21 +4,23 @@
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 
-// Windows Includes.
-#include "Windows/WindowsWindow.h"
-#include "Windows/WindowsHWrapper.h"
-#include "Windows/AllowWindowsPlatformTypes.h" 
-#include "Windows/HideWindowsPlatformTypes.h"
-#include "shellapi.h"								// File Drag Drop Callback.
-
 // UE Includes.
 #include "Widgets/SWindow.h"
 #include "Widgets/SWidget.h"
 #include "Runtime/UMG/Public/UMG.h"
 
+#include "Windows/WindowsWindow.h"
+#include "Windows/WindowsHWrapper.h"
+#include "Windows/WindowsApplication.h"				// File Drag Drop Message Handler.
+#include "Windows/AllowWindowsPlatformTypes.h" 
+#include "Windows/HideWindowsPlatformTypes.h"
+
 // C++ Includes.
 #include <string>
 #include <iostream>
+
+// Windows Includes.
+#include "shellapi.h"								// File Drag Drop Callback.
 
 #include "WindowSystemBPLibrary.generated.h"
 
@@ -40,6 +42,85 @@
 *	https://wiki.unrealengine.com/Custom_Blueprint_Node_Creation
 */
 
+USTRUCT(BlueprintType)
+struct FDroppedFileStruct
+{
+	GENERATED_BODY()
+
+public:
+
+		UPROPERTY(BlueprintReadWrite)
+		FString FilePath;
+
+		UPROPERTY(BlueprintReadWrite)
+		FString SenderWindow;
+
+		UPROPERTY(BlueprintReadWrite)
+		FVector2D DropLocation;
+};
+
+class FDragDropHandler : public IWindowsMessageHandler
+{
+
+public:
+
+	// We will use this to print drop informations.
+	AActor* OwnerActor;
+
+	bool ProcessMessage(HWND Hwnd, uint32 Message, WPARAM WParam, LPARAM LParam, int32& OutResult) override
+	{
+		if (Message == WM_DROPFILES)
+		{
+			// Drop System.
+			HDROP DropInfo = (HDROP)WParam;
+			char DroppedFile[MAX_PATH];
+
+			// File Path.
+			std::string Each_Path;
+			
+			// Drop Location.
+			POINT DropLocation;
+			FVector2D LocationVector;
+
+			// Out Informations.
+			FDroppedFileStruct DropFileStruct;
+			TArray<FDroppedFileStruct> OutArray;
+
+			for (int32 FileIndex = 0; DragQueryPoint(DropInfo, &DropLocation) && DragQueryFileA(DropInfo, FileIndex, (LPSTR)DroppedFile, sizeof(DroppedFile)); FileIndex++)
+			{
+				if (GetFileAttributesA(DroppedFile) != FILE_ATTRIBUTE_DIRECTORY)
+				{
+					TCHAR HandleName[256];
+					GetWindowText(Hwnd, HandleName, 256);
+					
+					LocationVector.X = DropLocation.x;
+					LocationVector.Y = DropLocation.y;
+
+					Each_Path = DroppedFile;
+
+					DropFileStruct.DropLocation = LocationVector;
+					DropFileStruct.FilePath = Each_Path.c_str();
+					DropFileStruct.SenderWindow = HandleName;
+
+					OutArray.Add(DropFileStruct);
+				}
+			}
+
+			OwnerActor->ProcessEvent(OwnerActor->FindFunction(FName("OnFileDrop")), &OutArray);
+
+			DragFinish(DropInfo);
+			OutArray.Empty();
+
+			return true;
+		}
+
+		else
+		{
+			return false;
+		}
+	}
+};
+
 UENUM(BlueprintType)
 enum class EWindowState : uint8
 {
@@ -48,7 +129,6 @@ enum class EWindowState : uint8
 	Maximized	UMETA(DisplayName = "Maximized"),
 };
 ENUM_CLASS_FLAGS(EWindowState)
-
 
 UCLASS(BlueprintType)
 class WINDOWSYSTEM_API UWindowObject : public UObject
@@ -63,11 +143,9 @@ public:
 
 	// FileDrop Variables.
 	bool bIsFileDropEnabled;			// If it is true, CloseWindow function will do additional tasks.
-	WNDCLASSEX FileDropWindowClass;
-	HWND FileDropWindowHandle;
+	FDragDropHandler DragDropHandler;
 
 	// Misc Variables.
-	FMargin Border;						// We use this to calculate file drop window size.
 	FName WindowTag;					// We use this as WindowTag, FileDrop Window Name and FileDrop Class Name.
 };
 
@@ -95,10 +173,6 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Bring Window Front", ToolTip = "It brings UE SWindow to front.", Keywords = "bring, window, front"), Category = "Window System|Set")
 	static bool BringWindowFront(UPARAM(ref)UWindowObject*& InWindowObject, bool bFlashWindow);
 
-	// Helper function for File Drop System.
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set File Drop Size", ToolTip = "This is a helper function for File Drop system. DO NOT MESS WITH IT, if you don't know what you are doing.", Keywords = "set, file, drop, size"), Category = "Window System|Set|File Drop")
-	static bool SetFileDropSize(UPARAM(ref)UWindowObject*& InWindowObject, int32 X_Multiplier, int32 Y_Multiplier);
-
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Window Opacity", Keywords = "set, window, opacity"), Category = "Window System|Set")
 	static bool SetWindowOpacity(UPARAM(ref)UWindowObject*& InWindowObject, float NewOpacity);
 
@@ -125,6 +199,9 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Window Title", Keywords = "get, window, title"), Category = "Window System|Get")
 	static bool GetWindowTitle(UPARAM(ref)UWindowObject*& InWindowObject, FText& OutWindowTitle);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Main Window Title", Keywords = "get, window, title, main"), Category = "Window System|Get")
+	static bool GetMainWindowTitle(FText& OutWindowTitle);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Window Tag", Keywords = "get, window, tag"), Category = "Window System|Get")
 	static bool GetWindowTag(UPARAM(ref)UWindowObject*& InWindowObject, FName& OutWindowTag);
