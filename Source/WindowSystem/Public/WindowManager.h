@@ -19,6 +19,12 @@ protected:
 	// Called when the game ends or when destroyed
 	virtual void EndPlay(EEndPlayReason::Type Reason) override;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	bool bAllowMainWindow = true;
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Allow Main Window", Keywords = "allow, accept, main, window, viewport"), Category = "Window System|Set")
+	virtual bool AllowMainWindow(FDroppedFileStruct InFile, FDroppedFileStruct& OutFile);
+
 public:	
 	// Sets default values for this actor's properties
 	AWindowManager();

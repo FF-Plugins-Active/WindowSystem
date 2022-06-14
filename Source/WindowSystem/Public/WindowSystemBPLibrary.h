@@ -201,7 +201,7 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 	static bool GetWindowTitle(UPARAM(ref)UWindowObject*& InWindowObject, FText& OutWindowTitle);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Main Window Title", Keywords = "get, window, title, main"), Category = "Window System|Get")
-	static bool GetMainWindowTitle(FText& OutWindowTitle);
+	static FText GetMainWindowTitle();
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Window Tag", Keywords = "get, window, tag"), Category = "Window System|Get")
 	static bool GetWindowTag(UPARAM(ref)UWindowObject*& InWindowObject, FName& OutWindowTag);

@@ -320,19 +320,9 @@ bool UWindowSystemBPLibrary::GetWindowTitle(UPARAM(ref)UWindowObject*& InWindowO
 	}
 }
 
-bool UWindowSystemBPLibrary::GetMainWindowTitle(FText& OutWindowTitle)
+FText UWindowSystemBPLibrary::GetMainWindowTitle()
 {
-	OutWindowTitle = GEngine->GameViewport->GetWindow().ToSharedRef().Get().GetTitle();
-
-	if (OutWindowTitle.IsEmpty() == true)
-	{
-		return false;
-	}
-
-	else
-	{
-		return true;
-	}
+	return GEngine->GameViewport->GetWindow().ToSharedRef().Get().GetTitle();
 }
 
 bool UWindowSystemBPLibrary::GetWindowTag(UPARAM(ref)UWindowObject*& InWindowObject, FName& OutWindowTag)

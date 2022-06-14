@@ -52,6 +52,29 @@ void AWindowManager::NotifyWindowClosed(const TSharedRef<SWindow>& Window)
 	AWindowManager::OnWindowClosed(Window.Get().GetTag());
 }
 
+bool AWindowManager::AllowMainWindow(FDroppedFileStruct InFile, FDroppedFileStruct& OutFile)
+{
+	if (InFile.SenderWindow == UWindowSystemBPLibrary::GetMainWindowTitle().ToString())
+	{
+		if (this->bAllowMainWindow == true)
+		{
+			OutFile = InFile;
+			return true;
+		}
+
+		else
+		{
+			return false;
+		}
+	}
+
+	else
+	{
+		OutFile = InFile;
+		return true;
+	}
+}
+
 bool AWindowManager::CreateNewWindow(UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost, bool bHasClose, bool bForceVolatile, bool bPreserveAspectRatio, bool bMinimized, bool bSupportsMaximized, bool bSupportsMinimized, bool bSetMirrorWindow, bool bAllowFileDrop, FName InWindowTag, FText InWindowTitle, FText InToolTip, FVector2D WindowSize, FVector2D MinSize, FVector2D WindowPosition, FMargin InBorder, float InOpacity, FColor DropColor, UWindowObject*& OutWindowObject)
 {
 	// We need to crete UObject for moving SWindow, HWND, widget contents and other in blueprints.
