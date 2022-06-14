@@ -59,6 +59,16 @@ public:
 		FVector2D DropLocation;
 };
 
+UENUM(BlueprintType)
+enum class EWindowState : uint8
+{
+	Minimized	UMETA(DisplayName = "Minimized"),
+	Restored	UMETA(DisplayName = "Restored"),
+	Maximized	UMETA(DisplayName = "Maximized"),
+};
+ENUM_CLASS_FLAGS(EWindowState)
+
+// File Drag Drop Message Handler Subclass.
 class FDragDropHandler : public IWindowsMessageHandler
 {
 
@@ -77,7 +87,7 @@ public:
 
 			// File Path.
 			std::string Each_Path;
-			
+
 			// Drop Location.
 			POINT DropLocation;
 			FVector2D LocationVector;
@@ -92,7 +102,7 @@ public:
 				{
 					TCHAR HandleName[256];
 					GetWindowText(Hwnd, HandleName, 256);
-					
+
 					LocationVector.X = DropLocation.x;
 					LocationVector.Y = DropLocation.y;
 
@@ -121,15 +131,6 @@ public:
 	}
 };
 
-UENUM(BlueprintType)
-enum class EWindowState : uint8
-{
-	Minimized	UMETA(DisplayName = "Minimized"),
-	Restored	UMETA(DisplayName = "Restored"),
-	Maximized	UMETA(DisplayName = "Maximized"),
-};
-ENUM_CLASS_FLAGS(EWindowState)
-
 UCLASS(BlueprintType)
 class WINDOWSYSTEM_API UWindowObject : public UObject
 {
@@ -137,16 +138,17 @@ class WINDOWSYSTEM_API UWindowObject : public UObject
 
 public:
 
-	// SWindow Variables.
-	TSharedPtr<SWindow> WindowPtr;		// BlueprintType does not support TSharedRef. You can convert pointers to referances with .ToSharedRef()
-	UUserWidget* ContentWidget;			// We need to release widget before closing it and we can not get UUserWidget pointer from SWindow and its contents. So we just add it here.
+	TSharedPtr<SWindow> WindowPtr;			// BlueprintType does not support TSharedRef. You can convert pointers to referances with .ToSharedRef()
+	
+	UPROPERTY(BlueprintReadOnly)
+	UUserWidget* ContentWidget;				// We need to release widget before closing it and we can not get UUserWidget pointer from SWindow and its contents. So we just add it here.
+	
+	UPROPERTY(BlueprintReadOnly)
+	FName WindowTag;						// We use this as WindowTag, FileDrop Window Name and FileDrop Class Name.
+	
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsFileDropEnabled = false;		// If it is true, CloseWindow function will do additional tasks.
 
-	// FileDrop Variables.
-	bool bIsFileDropEnabled;			// If it is true, CloseWindow function will do additional tasks.
-	FDragDropHandler DragDropHandler;
-
-	// Misc Variables.
-	FName WindowTag;					// We use this as WindowTag, FileDrop Window Name and FileDrop Class Name.
 };
 
 // Blueprint exposed delegate for GetViewportDragState and GetWindowDragState

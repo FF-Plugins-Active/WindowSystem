@@ -17,23 +17,18 @@ void AWindowManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	MW_DragDropHandler.OwnerActor = this;
-	
-	HWND Window = reinterpret_cast<HWND>(GEngine->GameViewport->GetWindow()->GetNativeWindow()->GetOSWindowHandle());
-	DragAcceptFiles(Window, true);
-	
-	FWindowsApplication* WindowsApplication = (FWindowsApplication*)FSlateApplication::Get().GetPlatformApplication().Get();
-	WindowsApplication->AddMessageHandler(MW_DragDropHandler);
+	FTimerHandle UnusedHandle;
+	GetWorldTimerManager().SetTimer(UnusedHandle, this, &AWindowManager::AddDragDropHandlerToMV, 2);
 }
 
 // Called when the game ends or when destroyed
 void AWindowManager::EndPlay(EEndPlayReason::Type Reason)
 {
-	FWindowsApplication* WindowsApplication = (FWindowsApplication*)FSlateApplication::Get().GetPlatformApplication().Get();
-	WindowsApplication->RemoveMessageHandler(MW_DragDropHandler);
-
-	this->CloseAllWindows();
 	Super::EndPlay(Reason);
+	
+	this->CloseAllWindows();
+	
+	this->RemoveDragDropHandlerFromMV();
 }
 
 // Called every frame
@@ -52,7 +47,7 @@ void AWindowManager::NotifyWindowClosed(const TSharedRef<SWindow>& Window)
 	AWindowManager::OnWindowClosed(Window.Get().GetTag());
 }
 
-bool AWindowManager::AllowMainWindow(FDroppedFileStruct InFile, FDroppedFileStruct& OutFile)
+bool AWindowManager::AcceptFilesFromMV(FDroppedFileStruct InFile, FDroppedFileStruct& OutFile)
 {
 	if (InFile.SenderWindow == UWindowSystemBPLibrary::GetMainWindowTitle().ToString())
 	{
@@ -75,7 +70,33 @@ bool AWindowManager::AllowMainWindow(FDroppedFileStruct InFile, FDroppedFileStru
 	}
 }
 
-bool AWindowManager::CreateNewWindow(UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost, bool bHasClose, bool bForceVolatile, bool bPreserveAspectRatio, bool bMinimized, bool bSupportsMaximized, bool bSupportsMinimized, bool bSetMirrorWindow, bool bAllowFileDrop, FName InWindowTag, FText InWindowTitle, FText InToolTip, FVector2D WindowSize, FVector2D MinSize, FVector2D WindowPosition, FMargin InBorder, float InOpacity, FColor DropColor, UWindowObject*& OutWindowObject)
+void AWindowManager::AddDragDropHandlerToMV()
+{
+	DragDropHandler.OwnerActor = this;
+
+	HWND WindowHandle = reinterpret_cast<HWND>(GEngine->GameViewport->GetWindow()->GetNativeWindow()->GetOSWindowHandle());
+
+	DragAcceptFiles(WindowHandle, true);
+
+	FWindowsApplication* WindowApplication = (FWindowsApplication*)FSlateApplication::Get().GetPlatformApplication().Get();
+
+	if (WindowApplication)
+	{
+		WindowApplication->AddMessageHandler(DragDropHandler);
+	}
+}
+
+void AWindowManager::RemoveDragDropHandlerFromMV()
+{
+	FWindowsApplication* WindowsApplication = (FWindowsApplication*)FSlateApplication::Get().GetPlatformApplication().Get();
+
+	if (WindowsApplication)
+	{
+		WindowsApplication->RemoveMessageHandler(DragDropHandler);
+	}
+}
+
+bool AWindowManager::CreateNewWindow(UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost, bool bHasClose, bool bForceVolatile, bool bPreserveAspectRatio, bool bMinimized, bool bSupportsMaximized, bool bSupportsMinimized, bool bSetMirrorWindow, FName InWindowTag, FText InWindowTitle, FText InToolTip, FVector2D WindowSize, FVector2D MinSize, FVector2D WindowPosition, FMargin InBorder, float InOpacity, UWindowObject*& OutWindowObject)
 {
 	// We need to crete UObject for moving SWindow, HWND, widget contents and other in blueprints.
 	UWindowObject* WindowObject = NewObject<UWindowObject>();
@@ -111,38 +132,25 @@ bool AWindowManager::CreateNewWindow(UPARAM(ref)UUserWidget*& InChildWidget, boo
 	WidgetWindow->MoveWindowTo(WindowPosition);
 	WidgetWindow->SetTag(InWindowTag);
 
-	FSlateApplication::Get().AddWindow(WidgetWindow.ToSharedRef(), true);
-
-	HWND WidgetWindowHandle = reinterpret_cast<HWND>(WidgetWindow.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
-
-	// Hide Window from Taskbar.
-	long TaskbarHide = WS_EX_NOACTIVATE;
-	SetWindowLong(WidgetWindowHandle, GWL_EXSTYLE, TaskbarHide);
-
-	// Start File Drop Section.
-	if (bAllowFileDrop == true)
-	{
-		DragAcceptFiles(WidgetWindowHandle, true);
-
-		WindowObject->DragDropHandler.OwnerActor = this;
-
-		FWindowsApplication* WindowsApplication = reinterpret_cast<FWindowsApplication*>(WidgetWindow.Get());
-		WindowsApplication->AddMessageHandler(WindowObject->DragDropHandler);
-	}
-
-	WindowObject->bIsFileDropEnabled = bAllowFileDrop;
-	WindowObject->WindowPtr = WidgetWindow;
-	WindowObject->ContentWidget = InChildWidget;
-	WindowObject->WindowTag = InWindowTag;
-
-	// Record window BP object to window manager.
-	this->MAP_Windows.Add(InWindowTag, WindowObject);
-
 	// Initialize window events.
 	WidgetWindow->SetOnWindowMoved(FOnWindowClosed::CreateUObject(this, &AWindowManager::NotifyWindowMoved));
 	WidgetWindow->SetOnWindowClosed(FOnWindowClosed::CreateUObject(this, &AWindowManager::NotifyWindowClosed));
 
+	// Add created window to Slate.
+	FSlateApplication::Get().AddWindow(WidgetWindow.ToSharedRef(), true);
+
+	// Set window UObject parameters.
+	WindowObject->WindowPtr = WidgetWindow;
+	WindowObject->ContentWidget = InChildWidget;
+	WindowObject->WindowTag = InWindowTag;
+
+	// Hide Window from Taskbar.
+	HWND WidgetWindowHandle = reinterpret_cast<HWND>(WidgetWindow.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
+	long TaskbarHide = WS_EX_NOACTIVATE;
+	SetWindowLong(WidgetWindowHandle, GWL_EXSTYLE, TaskbarHide);
+	
 	// Return values.
+	this->MAP_Windows.Add(InWindowTag, WindowObject);
 	OutWindowObject = WindowObject;
 	return true;
 }
@@ -154,12 +162,6 @@ bool AWindowManager::CloseWindow(UPARAM(ref)UWindowObject*& InWindowObject)
 		if (IsValid(InWindowObject->ContentWidget) == true)
 		{
 			InWindowObject->ContentWidget->ReleaseSlateResources(true);
-		}
-
-		if (InWindowObject->bIsFileDropEnabled == true)
-		{
-			FWindowsApplication* WindowsApplication = reinterpret_cast<FWindowsApplication*>(InWindowObject->WindowPtr.Get());
-			WindowsApplication->RemoveMessageHandler(InWindowObject->DragDropHandler);
 		}
 
 		if (InWindowObject->WindowPtr.IsValid() == true)
@@ -251,6 +253,34 @@ bool AWindowManager::SetAllWindowsOpacities(float NewOpacity)
 		}
 
 		return true;
+	}
+
+	else
+	{
+		return false;
+	}
+}
+
+bool AWindowManager::SetFileDragDropSupport(UPARAM(ref)UWindowObject*& InWindowObject)
+{
+	if (IsValid(InWindowObject) == true)
+	{
+		if (InWindowObject->bIsFileDropEnabled == false)
+		{
+			InWindowObject->bIsFileDropEnabled = true;
+			
+			HWND WidgetWindowHandle = reinterpret_cast<HWND>(InWindowObject->WindowPtr.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
+			DragAcceptFiles(WidgetWindowHandle, true);
+
+			this->MAP_Windows.Add(InWindowObject->WindowTag, InWindowObject);
+
+			return true;
+		}
+
+		else
+		{
+			return false;
+		}
 	}
 
 	else
