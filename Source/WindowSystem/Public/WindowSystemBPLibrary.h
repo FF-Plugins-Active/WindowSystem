@@ -15,12 +15,15 @@
 #include "Windows/AllowWindowsPlatformTypes.h" 
 #include "Windows/HideWindowsPlatformTypes.h"
 
+#include "GenericPlatform/GenericPlatformSurvey.h"
+
 // C++ Includes.
 #include <string>
 #include <iostream>
 
 // Windows Includes.
 #include "shellapi.h"								// File Drag Drop Callback.
+#include "dwmapi.h"									// Windows 11 Rounded Window Include.
 
 #include "WindowSystemBPLibrary.generated.h"
 
@@ -79,23 +82,41 @@ public:
 
 	bool ProcessMessage(HWND Hwnd, uint32 Message, WPARAM WParam, LPARAM LParam, int32& OutResult) override
 	{
-		if (Message == WM_DROPFILES)
+		/*
+		 * Window Roundness Preference.
+			* DWMWCP_DEFAULT = 0
+			* DWMWCP_DONOTROUND = 1
+			* DWMWCP_ROUND = 2
+			* DWMWCP_ROUNDSMALL = 3
+		*/
+		DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
+		
+		// Drop System.
+		HDROP DropInfo = (HDROP)WParam;
+		char DroppedFile[MAX_PATH];
+
+		// File Path.
+		std::string EachPath;
+
+		// Drop Location.
+		POINT DropLocation;
+		FVector2D LocationVector;
+
+		// Out Informations.
+		FDroppedFileStruct DropFileStruct;
+		TArray<FDroppedFileStruct> OutArray;
+		
+		switch (Message)
 		{
-			// Drop System.
-			HDROP DropInfo = (HDROP)WParam;
-			char DroppedFile[MAX_PATH];
+		case WM_PAINT:
+			
+			DwmSetWindowAttribute(Hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
+			
+			return true;
+			break;
 
-			// File Path.
-			std::string Each_Path;
-
-			// Drop Location.
-			POINT DropLocation;
-			FVector2D LocationVector;
-
-			// Out Informations.
-			FDroppedFileStruct DropFileStruct;
-			TArray<FDroppedFileStruct> OutArray;
-
+		case WM_DROPFILES:
+			
 			for (int32 FileIndex = 0; DragQueryPoint(DropInfo, &DropLocation) && DragQueryFileA(DropInfo, FileIndex, (LPSTR)DroppedFile, sizeof(DroppedFile)); FileIndex++)
 			{
 				if (GetFileAttributesA(DroppedFile) != FILE_ATTRIBUTE_DIRECTORY)
@@ -106,10 +127,10 @@ public:
 					LocationVector.X = DropLocation.x;
 					LocationVector.Y = DropLocation.y;
 
-					Each_Path = DroppedFile;
+					EachPath = DroppedFile;
 
 					DropFileStruct.DropLocation = LocationVector;
-					DropFileStruct.FilePath = Each_Path.c_str();
+					DropFileStruct.FilePath = EachPath.c_str();
 					DropFileStruct.SenderWindow = HandleName;
 
 					OutArray.Add(DropFileStruct);
@@ -122,11 +143,11 @@ public:
 			OutArray.Empty();
 
 			return true;
-		}
-
-		else
-		{
+			break;
+		
+		default:
 			return false;
+			break;
 		}
 	}
 };

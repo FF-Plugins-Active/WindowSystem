@@ -15,20 +15,21 @@ AWindowManager::AWindowManager()
 // Called when the game starts or when spawned
 void AWindowManager::BeginPlay()
 {
+	this->AddDragDropHandlerToMV();
 	Super::BeginPlay();
 	
-	FTimerHandle UnusedHandle;
-	GetWorldTimerManager().SetTimer(UnusedHandle, this, &AWindowManager::AddDragDropHandlerToMV, 2);
+	//FTimerHandle UnusedHandle;
+	//GetWorldTimerManager().SetTimer(UnusedHandle, this, &AWindowManager::AddDragDropHandlerToMV, 2);
 }
 
 // Called when the game ends or when destroyed
 void AWindowManager::EndPlay(EEndPlayReason::Type Reason)
 {
-	Super::EndPlay(Reason);
-	
 	this->CloseAllWindows();
-	
+
 	this->RemoveDragDropHandlerFromMV();
+	
+	Super::EndPlay(Reason);
 }
 
 // Called every frame
