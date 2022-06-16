@@ -17,7 +17,7 @@ FEATURES:
 - Created windows and main game window can support runtime file drag drop.
 - User can drop multiple files at once. It gives an array.
 - User can get drop location on screen. You can use it to calculate world location for importing and spawning 3D assets to specific location.
-- It records all generated windows in a "MAP_Windows" map variable. (Key = Window Tag / Value = Window Object). If you have access BP_Template_WinMan Object Referance, you can get your window object referance with only its tag.
+- It records all generated windows in a "MAP_Windows" map variable. (Key = Window Tag / Value = Window Object). If you have access BP_Template_WinMan Object Referance, you can get your window object referance with only its tag.)
 - User can take screenshot of visible window or whole widget.
 - If target platform is Windows 11, created windows will have rounded corners.
 
