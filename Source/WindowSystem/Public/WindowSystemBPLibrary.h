@@ -15,8 +15,6 @@
 #include "Windows/AllowWindowsPlatformTypes.h" 
 #include "Windows/HideWindowsPlatformTypes.h"
 
-#include "GenericPlatform/GenericPlatformSurvey.h"
-
 // C++ Includes.
 #include <string>
 #include <iostream>
@@ -24,6 +22,7 @@
 // Windows Includes.
 #include "shellapi.h"								// File Drag Drop Callback.
 #include "dwmapi.h"									// Windows 11 Rounded Window Include.
+#include <winreg.h>                                 // Regedit access.
 
 #include "WindowSystemBPLibrary.generated.h"
 
@@ -81,16 +80,7 @@ public:
 	AActor* OwnerActor;
 
 	bool ProcessMessage(HWND Hwnd, uint32 Message, WPARAM WParam, LPARAM LParam, int32& OutResult) override
-	{
-		/*
-		 * Window Roundness Preference.
-			* DWMWCP_DEFAULT = 0
-			* DWMWCP_DONOTROUND = 1
-			* DWMWCP_ROUND = 2
-			* DWMWCP_ROUNDSMALL = 3
-		*/
-		DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
-		
+	{		
 		// Drop System.
 		HDROP DropInfo = (HDROP)WParam;
 		char DroppedFile[MAX_PATH];
@@ -106,11 +96,31 @@ public:
 		FDroppedFileStruct DropFileStruct;
 		TArray<FDroppedFileStruct> OutArray;
 		
+		// Read Regedit To Get Windows Build Number.
+		HKEY hKey;
+		LONG Result = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0, KEY_READ, &hKey);
+		TCHAR Buffer[MAX_PATH];
+		DWORD BufferSize = sizeof(Buffer);
+		HRESULT hResult = RegQueryValueEx(hKey, L"CurrentBuildNumber", 0, nullptr, reinterpret_cast<LPBYTE>(Buffer), &BufferSize);
+		int32 BuildNumber = FCString::Atoi(Buffer);
+			
 		switch (Message)
 		{
 		case WM_PAINT:
 			
-			DwmSetWindowAttribute(Hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
+			if (BuildNumber >= 22000)
+			{
+				/*
+					* Window Roundness Preference.
+					* DWMWCP_DEFAULT = 0
+					* DWMWCP_DONOTROUND = 1
+					* DWMWCP_ROUND = 2
+					* DWMWCP_ROUNDSMALL = 3
+				*/
+				DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
+				DwmSetWindowAttribute(Hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
+				//GEngine->AddOnScreenDebugMessage(0, 5, FColor::Red, "Windows 11 Detected");
+			}
 			
 			return true;
 			break;
