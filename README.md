@@ -73,4 +73,4 @@ ON PURPOSED LIMITATION:
 - Created windows won't be appeared on taskbar. Because even if we disable "close" button in titlebar, Windows Operating System does not disable "close" button in task bar and user can accidentally close it. So, hide it from taskbar. If a creted window goes back, you need to use an UMG button to and "Bring Window Front" function.
 
 PLATFORM:
-This platform is created only for Windows operating system and Unreal Engine 5. Other platforms such as Linux, Mac OS and Unreal Engine 4 won't be supported.
+- This platform is created only for Windows operating system and Unreal Engine 5. Other platforms such as Linux, Mac OS and Unreal Engine 4 won't be supported.
