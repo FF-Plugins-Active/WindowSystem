@@ -14,13 +14,36 @@ UWindowSystemBPLibrary::UWindowSystemBPLibrary(const FObjectInitializer& ObjectI
 
 }
 
-FVector2D UWindowSystemBPLibrary::GetDesktopResolution()
+void UWindowSystemBPLibrary::GetMonitorNames(TMap<FString, FString>& OutMonitors)
 {
-	FVector2D DesktopResolution;
-	DesktopResolution.X = GetSystemMetrics(SM_CXSCREEN);
-	DesktopResolution.Y = GetSystemMetrics(SM_CYSCREEN);
+	FDisplayMetrics Display;
+	FDisplayMetrics::RebuildDisplayMetrics(Display);
 
-	return DesktopResolution;
+	for (int32 MonitorIndex = 0; MonitorIndex < Display.MonitorInfo.Num(); MonitorIndex++)
+	{
+		OutMonitors.Add(Display.MonitorInfo[MonitorIndex].Name, Display.MonitorInfo[MonitorIndex].ID);
+	}
+}
+
+void UWindowSystemBPLibrary::GetDesktopResolution(int32 MonitorIndex, FVector2D& PrimaryResolution, FVector2D& TotalResolution, FVector2D& MonitorStart, FVector2D& MonitorResolution, float& MonitorDPI)
+{
+	FDisplayMetrics Display;
+	FDisplayMetrics::RebuildDisplayMetrics(Display);
+
+	PrimaryResolution.X = Display.PrimaryDisplayWidth;
+	PrimaryResolution.Y = Display.PrimaryDisplayHeight;
+
+	TotalResolution.X = Display.VirtualDisplayRect.Right - Display.VirtualDisplayRect.Left;
+	TotalResolution.Y = Display.VirtualDisplayRect.Bottom - Display.VirtualDisplayRect.Top;
+
+	const FMonitorInfo Monitor = Display.MonitorInfo[MonitorIndex];
+	MonitorStart.X = Monitor.WorkArea.Left;
+	MonitorStart.Y = Monitor.WorkArea.Top;
+
+	MonitorResolution.X = Monitor.DisplayRect.Right - Monitor.DisplayRect.Left;
+	MonitorResolution.Y = Monitor.DisplayRect.Bottom - Monitor.DisplayRect.Top;
+
+	MonitorDPI = Monitor.DPI;
 }
 
 void UWindowSystemBPLibrary::IsWindowTopMost(UPARAM(ref)UWindowObject*& InWindowObject, bool& bIsTopMost)
@@ -412,4 +435,10 @@ bool UWindowSystemBPLibrary::TakeSSWidget(UUserWidget* InWidget, FVector2D InSiz
 	{
 		return false;
 	}
+}
+
+void UWindowSystemBPLibrary::SetMainWindowPosition(FVector2D InNewPosition)
+{
+	TSharedRef<SWindow> Window = GEngine->GameViewport->GetWindow().ToSharedRef();
+	Window.Get().MoveWindowTo(InNewPosition);
 }
