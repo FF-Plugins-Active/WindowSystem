@@ -71,7 +71,7 @@ ADDITIONAL FUNCTIONS (Virtual Function. Should be called with Window Manager Ref
 - Close All Windows
 
 ON PURPOSED LIMITATION:
-- Created windows won't be appeared on taskbar. Because even if we disable "close" button in titlebar, Windows Operating System does not disable "close" button in task bar and user can accidentally close it. So, hide it from taskbar. If a creted window goes back, you need to use an UMG button to and "Bring Window Front" function.
+- Created windows won't appear on taskbar. Because even if we disable "close" button in titlebar, Windows Operating System does not disable it in taskbar and user can accidentally close it. So, we hide all window. If yopur project is fullscreen and a created window goes back, you need to use an UMG button and "Bring Window Front" function to bring it back. If your project is windowed, other windows will just goes one layer back. So you can bring it back with just hover.
 
 PLATFORM:
-- This platform is created only for Windows operating system and Unreal Engine 5. Other platforms such as Linux, Mac OS and Unreal Engine 4 won't be supported.
+- This plugin created only for Windows operating system and Unreal Engine 5. Other platforms such as Linux, Mac OS and Unreal Engine 4 won't be supported.
