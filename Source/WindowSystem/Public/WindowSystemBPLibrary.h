@@ -194,12 +194,6 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_UCLASS_BODY()
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Monitor Names", Keywords = "get, monitor, names"), Category = "Window System|Get|System")
-	static void GetMonitorNames(TMap<FString, FString>& OutMonitors);
-		
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Get Desktop Resolution", Keywords = "get, desktop, resolution"), Category = "Window System|Get|System")
-	static void GetDesktopResolution(int32 MonitorIndex, FVector2D& PrimaryResolution, FVector2D& TotalResolution, FVector2D& MonitorStart, FVector2D& MonitorResolution, float& MonitorDPI);
-
 	UFUNCTION(BlueprintPure, meta = (DisplayName = "Is Window Top Most", Keywords = "is, window, top, most"), Category = "Window System|Check")
 	static void IsWindowTopMost(UPARAM(ref)UWindowObject*& InWindowObject, bool& bIsTopMost);
 
@@ -220,6 +214,9 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Window Position", ToolTip = "Description.", Keywords = "set, window, positon, location, move"), Category = "Window System|Set")
 	static bool SetWindowPosition(UPARAM(ref)UWindowObject*& InWindowObject, FVector2D InNewPosition);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Main Window Position", ToolTip = "Set Main Window Position", Keywords = "set, main, window, position"), Category = "Window System|Set|System")
+	static void SetMainWindowPosition(FVector2D InNewPosition);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Window Title", ToolTip = "Description.", Keywords = "set, window, title"), Category = "Window System|Set")
 	static bool SetWindowTitle(UPARAM(ref)UWindowObject*& InWindowObject, FText InNewTitle);
@@ -248,6 +245,4 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Take Screenshot of Widget", ToolTip = "Export To Disk functions should come after a delay node.", Keywords = "take, ss, screenshot, widget"), Category = "Window System|Export")
 	static bool TakeSSWidget(UUserWidget* InWidget, FVector2D InSize, UTextureRenderTarget2D*& OutTextureRenderTarget2D);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Main Window Position", ToolTip = "Set Main Window Position", Keywords = "set, main, window, position"), Category = "Window System|Set|System")
-	static void SetMainWindowPosition(FVector2D InNewPosition);
 };

@@ -6,44 +6,10 @@
 // UE Includes.
 #include "Slate/WidgetRenderer.h"		// Widget to Texture 2D
 
-#include "GenericPlatform/GenericApplication.h"
-
 UWindowSystemBPLibrary::UWindowSystemBPLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
 
-}
-
-void UWindowSystemBPLibrary::GetMonitorNames(TMap<FString, FString>& OutMonitors)
-{
-	FDisplayMetrics Display;
-	FDisplayMetrics::RebuildDisplayMetrics(Display);
-
-	for (int32 MonitorIndex = 0; MonitorIndex < Display.MonitorInfo.Num(); MonitorIndex++)
-	{
-		OutMonitors.Add(Display.MonitorInfo[MonitorIndex].Name, Display.MonitorInfo[MonitorIndex].ID);
-	}
-}
-
-void UWindowSystemBPLibrary::GetDesktopResolution(int32 MonitorIndex, FVector2D& PrimaryResolution, FVector2D& TotalResolution, FVector2D& MonitorStart, FVector2D& MonitorResolution, float& MonitorDPI)
-{
-	FDisplayMetrics Display;
-	FDisplayMetrics::RebuildDisplayMetrics(Display);
-
-	PrimaryResolution.X = Display.PrimaryDisplayWidth;
-	PrimaryResolution.Y = Display.PrimaryDisplayHeight;
-
-	TotalResolution.X = Display.VirtualDisplayRect.Right - Display.VirtualDisplayRect.Left;
-	TotalResolution.Y = Display.VirtualDisplayRect.Bottom - Display.VirtualDisplayRect.Top;
-
-	const FMonitorInfo Monitor = Display.MonitorInfo[MonitorIndex];
-	MonitorStart.X = Monitor.WorkArea.Left;
-	MonitorStart.Y = Monitor.WorkArea.Top;
-
-	MonitorResolution.X = Monitor.DisplayRect.Right - Monitor.DisplayRect.Left;
-	MonitorResolution.Y = Monitor.DisplayRect.Bottom - Monitor.DisplayRect.Top;
-
-	MonitorDPI = Monitor.DPI;
 }
 
 void UWindowSystemBPLibrary::IsWindowTopMost(UPARAM(ref)UWindowObject*& InWindowObject, bool& bIsTopMost)
@@ -219,6 +185,12 @@ bool UWindowSystemBPLibrary::SetWindowPosition(UPARAM(ref)UWindowObject*& InWind
 	{
 		return false;
 	}
+}
+
+void UWindowSystemBPLibrary::SetMainWindowPosition(FVector2D InNewPosition)
+{
+	TSharedRef<SWindow> Window = GEngine->GameViewport->GetWindow().ToSharedRef();
+	Window.Get().MoveWindowTo(InNewPosition);
 }
 
 bool UWindowSystemBPLibrary::SetWindowTitle(UPARAM(ref)UWindowObject*& InWindowObject, FText InNewTitle)
@@ -435,10 +407,4 @@ bool UWindowSystemBPLibrary::TakeSSWidget(UUserWidget* InWidget, FVector2D InSiz
 	{
 		return false;
 	}
-}
-
-void UWindowSystemBPLibrary::SetMainWindowPosition(FVector2D InNewPosition)
-{
-	TSharedRef<SWindow> Window = GEngine->GameViewport->GetWindow().ToSharedRef();
-	Window.Get().MoveWindowTo(InNewPosition);
 }
