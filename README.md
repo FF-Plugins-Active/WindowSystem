@@ -44,7 +44,6 @@ ADDITIONAL FUNCTIONS (Static Functions. Should be called without Window Manager)
 - Take Screenshot of Widget
 - Take Screenshot of Window
 
-- Get Desktop Resolution
 - Get Main Window Title
 
 - Get Window Tag
