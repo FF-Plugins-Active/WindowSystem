@@ -1,7 +1,9 @@
 # WindowSystem
 
 PURPOSE:
-- This plugin allows to create a external windows in "runtime" with UMG support.
+- This plugin has two purpose.
+   1- It creates an external windows in "runtime" with UMG support.
+   2- It enabled file drag drop to main window and external windows.
 
 USAGE:
 - Place "BP_Template_WinMan" to world (it is in Plugins/WindowSystem Content/BPs)
@@ -11,7 +13,7 @@ USAGE:
 - Add "Create New Window" node from BP_Template_WinMan Object Referance.
 - To enable file drag drop for main window, set true to "Allow Main Window" boolean on BP_Template_WinMan (Default is true and it exposed as instanced variable.)
 - To enable file drag drop for created windows, use Set File Drag Drop Support after window creation.
-- Drop operation will trigger an event as OnFileDrop. This event will give you file path, drop location on screen and dropped window's name. So, you need to implement your import mechanics with these informations.
+- Drop operation will trigger an event as OnFileDrop. This event will give you file path, drop location on screen and dropped window's name. ***So, you need to implement your import mechanics with these informations.
 
 FEATURES:
 - Created windows and main game window can support runtime file drag drop.
@@ -72,5 +74,5 @@ ADDITIONAL FUNCTIONS (Virtual Function. Should be called with Window Manager Ref
 ON PURPOSED LIMITATION:
 - Created windows won't appear on taskbar. Because even if we disable "close" button in titlebar, Windows Operating System does not disable it in taskbar and user can accidentally close it. So, we hide all window. If your project is fullscreen and a created window goes back, you need to use an UMG button and "Bring Window Front" function to bring it back. If your project is windowed, other windows will just goes one layer back. So you can bring it back with just hover.
 
-PLATFORM:
+***PLATFORM:
 - This plugin created only for Windows operating system and Unreal Engine 5. Other platforms such as Linux, Mac OS and Unreal Engine 4 won't be supported.
