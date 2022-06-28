@@ -2,8 +2,8 @@
 
 PURPOSE:
 - This plugin has two purpose.
-   1- It creates an external windows in "runtime" with UMG support.
-   2- It enabled file drag drop to main window and external windows.
+   - It creates an external windows in "runtime" with UMG support.
+   - It enabled file drag drop to main window and external windows.
 
 USAGE:
 - Place "BP_Template_WinMan" to world (it is in Plugins/WindowSystem Content/BPs)
