@@ -6,6 +6,10 @@
 // UE Includes.
 #include "Slate/WidgetRenderer.h"		// Widget to Texture 2D
 
+// Win Includes.
+#include "winuser.h"
+#include "Windows/MinWindows.h"
+
 UWindowSystemBPLibrary::UWindowSystemBPLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
@@ -42,30 +46,52 @@ void UWindowSystemBPLibrary::IsWindowHovered(UPARAM(ref)UWindowObject*& InWindow
 
 bool UWindowSystemBPLibrary::BringWindowFront(UPARAM(ref)UWindowObject*& InWindowObject, bool bFlashWindow)
 {
-	if (IsValid(InWindowObject) == true)
+	if (IsValid(InWindowObject) == false)
 	{
-		if (InWindowObject->WindowPtr.IsValid() == true)
-		{
-			InWindowObject->WindowPtr.Get()->BringToFront();
+		return false;
+	}
+	
+	if (InWindowObject->WindowPtr.IsValid() == false)
+	{
+		return false;
+	}
 
-			if (bFlashWindow == true)
-			{
-				InWindowObject->WindowPtr.Get()->FlashWindow();
-			}
+	InWindowObject->WindowPtr.Get()->BringToFront();
 
-			return true;
-		}
+	if (bFlashWindow == true)
+	{
+		InWindowObject->WindowPtr.Get()->FlashWindow();
+	}
+	
+	return true;
+}
 
-		else
-		{
-			return false;
-		}
+bool UWindowSystemBPLibrary::ToggleShowOnTaskBar(UPARAM(ref)UWindowObject*& InWindowObject, bool bShowOnTaskBar)
+{
+	if (IsValid(InWindowObject) == false)
+	{
+		return false;
+	}
+
+	if (InWindowObject->WindowPtr.IsValid() == false)
+	{
+		return false;
+	}
+
+	HWND WidgetWindowHandle = reinterpret_cast<HWND>(InWindowObject->WindowPtr.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
+
+	if (bShowOnTaskBar == true)
+	{
+		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
+		UWindowSystemBPLibrary::BringWindowFront(InWindowObject, true);
 	}
 
 	else
 	{
-		return false;
+		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE);
 	}
+
+	return true;
 }
 
 bool UWindowSystemBPLibrary::SetWindowOpacity(UPARAM(ref)UWindowObject*& InWindowObject, float NewOpacity)

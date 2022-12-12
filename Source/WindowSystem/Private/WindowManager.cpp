@@ -1,9 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "WindowManager.h"
-
-// UE Includes.
-#include "HAL/UnrealMemory.h"
+#include "WindowSystemBPLibrary.h"
 
 // Sets default values
 AWindowManager::AWindowManager()
@@ -18,8 +16,8 @@ void AWindowManager::BeginPlay()
 	this->AddDragDropHandlerToMV();
 	Super::BeginPlay();
 	
-	//FTimerHandle UnusedHandle;
-	//GetWorldTimerManager().SetTimer(UnusedHandle, this, &AWindowManager::AddDragDropHandlerToMV, 2);
+	FTimerHandle UnusedHandle;
+	GetWorldTimerManager().SetTimer(UnusedHandle, this, &AWindowManager::AddDragDropHandlerToMV, 2);
 }
 
 // Called when the game ends or when destroyed
@@ -97,7 +95,7 @@ void AWindowManager::RemoveDragDropHandlerFromMV()
 	}
 }
 
-bool AWindowManager::CreateNewWindow(UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost, bool bHasClose, bool bForceVolatile, bool bPreserveAspectRatio, bool bMinimized, bool bSupportsMaximized, bool bSupportsMinimized, bool bSetMirrorWindow, FName InWindowTag, FText InWindowTitle, FText InToolTip, FVector2D WindowSize, FVector2D MinSize, FVector2D WindowPosition, FMargin InBorder, float InOpacity, UWindowObject*& OutWindowObject)
+bool AWindowManager::CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost, bool bHasClose, bool bForceVolatile, bool bPreserveAspectRatio, bool bMinimized, bool bSupportsMaximized, bool bSupportsMinimized, bool bSetMirrorWindow, bool bHideFromTaskBar, FName InWindowTag, FText InWindowTitle, FText InToolTip, FVector2D WindowSize, FVector2D MinSize, FVector2D WindowPosition, FMargin InBorder, float InOpacity)
 {
 	// We need to crete UObject for moving SWindow, HWND, widget contents and other in blueprints.
 	UWindowObject* WindowObject = NewObject<UWindowObject>();
@@ -147,9 +145,17 @@ bool AWindowManager::CreateNewWindow(UPARAM(ref)UUserWidget*& InChildWidget, boo
 
 	// Hide Window from Taskbar.
 	HWND WidgetWindowHandle = reinterpret_cast<HWND>(WidgetWindow.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
-	long TaskbarHide = WS_EX_NOACTIVATE;
-	SetWindowLong(WidgetWindowHandle, GWL_EXSTYLE, TaskbarHide);
 	
+	if (bHideFromTaskBar == true)
+	{
+		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE);
+	}
+
+	else
+	{
+		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
+	}
+
 	// Return values.
 	this->MAP_Windows.Add(InWindowTag, WindowObject);
 	OutWindowObject = WindowObject;
@@ -204,34 +210,36 @@ bool AWindowManager::CloseAllWindows()
 	}
 }
 
-void AWindowManager::DetectHoveredWindow(bool bPrintDetected, FDelegateDetectHovered DelegateHovered)
+void AWindowManager::DetectHoveredWindow(FDelegateDetectHovered DelegateHovered)
 {
-	if (this->MAP_Windows.Num() > 0)
+	if (this->MAP_Windows.Num() <= 0)
 	{
-		UPARAM(ref)TArray<UWindowObject*> ArrayWinObjects;
-		this->MAP_Windows.GenerateValueArray(ArrayWinObjects);
-		
-		for (int32 WindowIndex = 0; WindowIndex < ArrayWinObjects.Num(); WindowIndex++)
+		return;
+	}
+	
+	UPARAM(ref)TArray<UWindowObject*> ArrayWinObjects;
+	this->MAP_Windows.GenerateValueArray(ArrayWinObjects);
+
+	for (int32 WindowIndex = 0; WindowIndex < ArrayWinObjects.Num(); WindowIndex++)
+	{
+		if (IsValid(ArrayWinObjects[WindowIndex]) == false)
 		{
-			if (IsValid(ArrayWinObjects[WindowIndex]) == true)
-			{
-				if (ArrayWinObjects[WindowIndex]->WindowPtr.IsValid() == true)
-				{
-					if (ArrayWinObjects[WindowIndex]->WindowPtr.ToSharedRef().Get().IsHovered() == true)
-					{
-						DelegateHovered.Execute(true, ArrayWinObjects[WindowIndex]);
-
-						if (bPrintDetected == true)
-						{
-							GEngine->AddOnScreenDebugMessage(0, 10, FColor::Blue, ArrayWinObjects[WindowIndex]->WindowPtr.ToSharedRef().Get().GetTitle().ToString());
-						}
-
-						WindowIndex = 0;
-						break;
-					}
-				}
-			}
+			continue;
 		}
+		
+		if (ArrayWinObjects[WindowIndex]->WindowPtr.IsValid() == false)
+		{
+			continue;
+		}
+		
+		if (ArrayWinObjects[WindowIndex]->WindowPtr.ToSharedRef().Get().IsHovered() == false)
+		{
+			continue;
+		}
+		
+		DelegateHovered.Execute(true, ArrayWinObjects[WindowIndex]);
+		WindowIndex = 0;
+		break;
 	}
 }
 

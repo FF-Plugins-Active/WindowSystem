@@ -44,7 +44,7 @@ public:
 	// Window Close Delegate
 	void NotifyWindowClosed(const TSharedRef<SWindow>& Window);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
+	UFUNCTION(BlueprintImplementableEvent, meta = (Description = "Message came from WindowSystemBPLibrary.h \"OwnerActor->ProcessEvent(OwnerActor->FindFunction(FName(\"OnFileDrop\")), &OutArray);\""), Category = "Window System|Events")
 	void OnFileDrop(TArray<FDroppedFileStruct> const& OutMap);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
@@ -55,8 +55,8 @@ public:
 
 public:
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Create New Window", Keywords = "create, new, window", AdvancedDisplay = "bForceVolatile, bPreserveAspectRatio, bSupportsMaximized, bSupportsMinimized, bSetMirrorWindow, bAllowFileDrop, InToolTip, DropColor"), Category = "Window System|Constructs")
-	virtual bool CreateNewWindow(UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost, bool bHasClose, bool bForceVolatile, bool bPreserveAspectRatio, bool bMinimized, bool bSupportsMaximized, bool bSupportsMinimized, bool bSetMirrorWindow, FName InWindowTag, FText InWindowTitle, FText InToolTip, FVector2D WindowSize, FVector2D MinSize, FVector2D WindowPosition, FMargin InBorder, float InOpacity, UWindowObject*& OutWindowObject);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Create New Window", Description = "If you disable \"Hide From Taskbar \", or enable \"Has Close\" there will be risk to remove widget accidently. So, use it with cautious.\nIf your window hide from taskbar, you need to use \"Bring Window Front\" function with some delay to see it.", Keywords = "create, new, window", AdvancedDisplay = "bForceVolatile, bPreserveAspectRatio, bSupportsMaximized, bSupportsMinimized, bSetMirrorWindow, bAllowFileDrop, InToolTip, DropColor"), Category = "Window System|Constructs")
+	virtual bool CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost = false, bool bHasClose = false, bool bForceVolatile = false, bool bPreserveAspectRatio = false, bool bMinimized = false, bool bSupportsMaximized = false, bool bSupportsMinimized = false, bool bSetMirrorWindow = false, bool bHideFromTaskBar = true, FName InWindowTag = NAME_None, FText InWindowTitle = INVTEXT("None"), FText InToolTip = INVTEXT("None"), FVector2D WindowSize = FVector2D::ZeroVector, FVector2D MinSize = FVector2D::ZeroVector, FVector2D WindowPosition = FVector2D::ZeroVector, FMargin InBorder = FMargin(), float InOpacity = 0);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Close Window", Keywords = "close, window"), Category = "Window System|Constructs")
 	virtual bool CloseWindow(UPARAM(ref)UWindowObject*& InWindowObject);
@@ -65,7 +65,7 @@ public:
 	virtual bool CloseAllWindows();
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Detect Hovered Window", Keywords = "detect, hovered, window"), Category = "Window System|Check")
-	virtual void DetectHoveredWindow(bool bPrintDetected, FDelegateDetectHovered DelegateHovered);
+	virtual void DetectHoveredWindow(FDelegateDetectHovered DelegateHovered);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set All Windows Opacities", Keywords = "set, all, window, windows, opacity"), Category = "Window System|Set")
 	virtual bool SetAllWindowsOpacities(float NewOpacity);
