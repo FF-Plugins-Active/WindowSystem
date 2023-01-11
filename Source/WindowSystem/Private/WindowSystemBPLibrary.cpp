@@ -16,31 +16,57 @@ UWindowSystemBPLibrary::UWindowSystemBPLibrary(const FObjectInitializer& ObjectI
 
 }
 
-void UWindowSystemBPLibrary::IsWindowTopMost(UPARAM(ref)UWindowObject*& InWindowObject, bool& bIsTopMost)
+bool UWindowSystemBPLibrary::IsWindowTopMost(UPARAM(ref)UWindowObject*& InWindowObject, bool bUseNative)
 {
-	if (IsValid(InWindowObject) == true)
+	if (IsValid(InWindowObject) == false)
 	{
-		if (InWindowObject->WindowPtr.IsValid() == true)
+		return false;
+	}
+
+	if (InWindowObject->WindowPtr.IsValid() == false)
+	{
+		return false;
+	}
+
+	if (bUseNative == true)
+	{
+		HWND WidgetWindowHandle = reinterpret_cast<HWND>(InWindowObject->WindowPtr.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
+
+		if (GetWindowLong(WidgetWindowHandle, GWL_EXSTYLE) & WS_EX_TOPMOST)
 		{
-			if (InWindowObject->WindowPtr->IsTopmostWindow() == true)
-			{
-				bIsTopMost = true;
-			}
+			return true;
 		}
+
+		else
+		{
+			return false;
+		}
+	}
+
+	else
+	{
+		return InWindowObject->WindowPtr->IsTopmostWindow();
 	}
 }
 
 void UWindowSystemBPLibrary::IsWindowHovered(UPARAM(ref)UWindowObject*& InWindowObject, FDelegateHover DelegateHover)
 {
-	if (IsValid(InWindowObject) == true)
+	if (IsValid(InWindowObject) == false)
 	{
-		if (InWindowObject->WindowPtr.IsValid() == true)
-		{
-			if (InWindowObject->WindowPtr.ToSharedRef().Get().IsDirectlyHovered() == true)
-			{
-				DelegateHover.Execute(true);
-			}
-		}
+		DelegateHover.Execute(false);
+		return;
+	}
+	
+	if (InWindowObject->WindowPtr.IsValid() == false)
+	{
+		DelegateHover.Execute(false);
+		return;
+	}
+	
+	if (InWindowObject->WindowPtr.ToSharedRef().Get().IsDirectlyHovered() == true)
+	{
+		DelegateHover.Execute(true);
+		return;
 	}
 }
 
@@ -64,6 +90,33 @@ bool UWindowSystemBPLibrary::BringWindowFront(UPARAM(ref)UWindowObject*& InWindo
 	}
 	
 	return true;
+}
+
+bool UWindowSystemBPLibrary::ToggleTopMostOption(UPARAM(ref)UWindowObject*& InWindowObject)
+{
+	if (IsValid(InWindowObject) == false)
+	{
+		return false;
+	}
+
+	if (InWindowObject->WindowPtr.IsValid() == false)
+	{
+		return false;
+	}
+
+	HWND WidgetWindowHandle = reinterpret_cast<HWND>(InWindowObject->WindowPtr.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
+	
+	if (GetWindowLong(WidgetWindowHandle, GWL_EXSTYLE) & WS_EX_TOPMOST)
+	{
+		SetWindowPos(WidgetWindowHandle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		return true;
+	}
+
+	else
+	{
+		SetWindowPos(WidgetWindowHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		return true;
+	}
 }
 
 bool UWindowSystemBPLibrary::ToggleShowOnTaskBar(UPARAM(ref)UWindowObject*& InWindowObject, bool bShowOnTaskBar)
@@ -96,25 +149,18 @@ bool UWindowSystemBPLibrary::ToggleShowOnTaskBar(UPARAM(ref)UWindowObject*& InWi
 
 bool UWindowSystemBPLibrary::SetWindowOpacity(UPARAM(ref)UWindowObject*& InWindowObject, float NewOpacity)
 {
-	if (IsValid(InWindowObject) == true)
-	{
-		if (InWindowObject->WindowPtr.IsValid() == true)
-		{
-			InWindowObject->WindowPtr->SetOpacity(NewOpacity);
-
-			return true;
-		}
-
-		else
-		{
-			return false;
-		}
-	}
-
-	else
+	if (IsValid(InWindowObject) == false)
 	{
 		return false;
 	}
+	
+	if (InWindowObject->WindowPtr.IsValid() == false)
+	{
+		return false;
+	}
+
+	InWindowObject->WindowPtr->SetOpacity(NewOpacity);
+	return true;
 }
 
 bool UWindowSystemBPLibrary::SetWindowState(UPARAM(ref)UWindowObject*& InWindowObject, EWindowState OutWindowState)
