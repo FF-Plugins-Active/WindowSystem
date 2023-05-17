@@ -6,10 +6,6 @@
 // UE Includes.
 #include "Slate/WidgetRenderer.h"		// Widget to Texture 2D
 
-// Win Includes.
-#include "winuser.h"
-#include "Windows/MinWindows.h"
-
 UWindowSystemBPLibrary::UWindowSystemBPLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
@@ -142,6 +138,49 @@ bool UWindowSystemBPLibrary::ToggleShowOnTaskBar(UPARAM(ref)UWindowObject*& InWi
 	else
 	{
 		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE);
+	}
+
+	return true;
+}
+
+bool UWindowSystemBPLibrary::ToggleOpacity(UPARAM(ref)UWindowObject*& InWindowObject, bool bEnable)
+{
+	if (IsValid(InWindowObject) == false)
+	{
+		return false;
+	}
+
+	if (InWindowObject->WindowPtr.IsValid() == false)
+	{
+		return false;
+	}
+
+	HWND WidgetWindowHandle = reinterpret_cast<HWND>(InWindowObject->WindowPtr.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
+
+	if (bEnable)
+	{
+		if (InWindowObject->bHideFromTaskBar == true)
+		{
+			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYERED);
+		}
+
+		else
+		{
+			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TRANSPARENT | WS_EX_LAYERED);
+		}
+	}
+
+	else
+	{
+		if (InWindowObject->bHideFromTaskBar == true)
+		{
+			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE | WS_EX_TRANSPARENT);
+		}
+
+		else
+		{
+			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TRANSPARENT);
+		}
 	}
 
 	return true;
@@ -439,34 +478,6 @@ bool UWindowSystemBPLibrary::TakeSSWindow(UPARAM(ref)UWindowObject*& InWindowObj
 			{
 				return false;
 			}
-		}
-
-		else
-		{
-			return false;
-		}
-	}
-
-	else
-	{
-		return false;
-	}
-}
-
-bool UWindowSystemBPLibrary::TakeSSWidget(UUserWidget* InWidget, FVector2D InSize, UTextureRenderTarget2D*& OutTextureRenderTarget2D)
-{
-	if (IsValid(InWidget) == true)
-	{
-		UTextureRenderTarget2D* TextureTarget = FWidgetRenderer::CreateTargetFor(InSize, TextureFilter::TF_Default, false);
-
-		FWidgetRenderer* WidgetRenderer = new FWidgetRenderer(true);
-		WidgetRenderer->DrawWidget(TextureTarget, InWidget->TakeWidget(), InSize, 0, false);
-
-		if (IsValid(TextureTarget) == true)
-		{
-			OutTextureRenderTarget2D = TextureTarget;
-
-			return true;
 		}
 
 		else

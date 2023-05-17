@@ -14,10 +14,8 @@ AWindowManager::AWindowManager()
 void AWindowManager::BeginPlay()
 {
 	this->AddDragDropHandlerToMV();
-	Super::BeginPlay();
 	
-	FTimerHandle UnusedHandle;
-	GetWorldTimerManager().SetTimer(UnusedHandle, this, &AWindowManager::AddDragDropHandlerToMV, 2);
+	Super::BeginPlay();
 }
 
 // Called when the game ends or when destroyed
@@ -46,29 +44,6 @@ void AWindowManager::NotifyWindowClosed(const TSharedRef<SWindow>& Window)
 	AWindowManager::OnWindowClosed(Window.Get().GetTag());
 }
 
-bool AWindowManager::AcceptFilesFromMV(FDroppedFileStruct InFile, FDroppedFileStruct& OutFile)
-{
-	if (InFile.SenderWindow == UWindowSystemBPLibrary::GetMainWindowTitle().ToString())
-	{
-		if (this->bAllowMainWindow == true)
-		{
-			OutFile = InFile;
-			return true;
-		}
-
-		else
-		{
-			return false;
-		}
-	}
-
-	else
-	{
-		OutFile = InFile;
-		return true;
-	}
-}
-
 void AWindowManager::AddDragDropHandlerToMV()
 {
 	DragDropHandler.OwnerActor = this;
@@ -95,7 +70,7 @@ void AWindowManager::RemoveDragDropHandlerFromMV()
 	}
 }
 
-bool AWindowManager::CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost, bool bHasClose, bool bForceVolatile, bool bPreserveAspectRatio, bool bMinimized, bool bSupportsMaximized, bool bSupportsMinimized, bool bSetMirrorWindow, bool bHideFromTaskBar, FName InWindowTag, FText InWindowTitle, FText InToolTip, FVector2D WindowSize, FVector2D MinSize, FVector2D WindowPosition, FMargin InBorder, float InOpacity)
+bool AWindowManager::CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost, bool bHasClose, bool bForceVolatile, bool bPreserveAspectRatio, bool bMinimized, bool bSupportsMaximized, bool bSupportsMinimized, bool bSetMirrorWindow, bool bHideFromTaskBar, FName InWindowTag, FText InWindowTitle, FText InToolTip, FVector2D WindowSize, FVector2D MinSize, FVector2D WindowPosition, FMargin InBorder)
 {
 	// We need to crete UObject for moving SWindow, HWND, widget contents and other in blueprints.
 	UWindowObject* WindowObject = NewObject<UWindowObject>();
@@ -115,7 +90,6 @@ bool AWindowManager::CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref
 		.ForceVolatile(bForceVolatile)
 		.ShouldPreserveAspectRatio(bPreserveAspectRatio)
 		.IsInitiallyMinimized(bMinimized)
-		.InitialOpacity(InOpacity)
 		.FocusWhenFirstShown(true)
 		.HasCloseButton(bHasClose)
 		.SupportsMinimize(bSupportsMinimized)
@@ -142,18 +116,19 @@ bool AWindowManager::CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref
 	WindowObject->WindowPtr = WidgetWindow;
 	WindowObject->ContentWidget = InChildWidget;
 	WindowObject->WindowTag = InWindowTag;
+	WindowObject->bHideFromTaskBar = bHideFromTaskBar;
 
 	// Hide Window from Taskbar.
 	HWND WidgetWindowHandle = reinterpret_cast<HWND>(WidgetWindow.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
-	
+
 	if (bHideFromTaskBar == true)
 	{
-		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE);
+		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE | WS_EX_TRANSPARENT);
 	}
 
 	else
 	{
-		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
+		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TRANSPARENT);
 	}
 
 	// Return values.
@@ -214,6 +189,7 @@ void AWindowManager::DetectHoveredWindow(FDelegateDetectHovered DelegateHovered)
 {
 	if (this->MAP_Windows.Num() <= 0)
 	{
+		DelegateHovered.ExecuteIfBound(false, nullptr);
 		return;
 	}
 	
@@ -224,76 +200,46 @@ void AWindowManager::DetectHoveredWindow(FDelegateDetectHovered DelegateHovered)
 	{
 		if (IsValid(ArrayWinObjects[WindowIndex]) == false)
 		{
+			DelegateHovered.ExecuteIfBound(false, nullptr);
 			continue;
 		}
 		
 		if (ArrayWinObjects[WindowIndex]->WindowPtr.IsValid() == false)
 		{
+			DelegateHovered.ExecuteIfBound(false, nullptr);
 			continue;
 		}
 		
 		if (ArrayWinObjects[WindowIndex]->WindowPtr.ToSharedRef().Get().IsHovered() == false)
 		{
+			DelegateHovered.ExecuteIfBound(false, nullptr);
 			continue;
 		}
 		
-		DelegateHovered.Execute(true, ArrayWinObjects[WindowIndex]);
+		DelegateHovered.ExecuteIfBound(true, ArrayWinObjects[WindowIndex]);
 		WindowIndex = 0;
 		break;
 	}
-}
 
-bool AWindowManager::SetAllWindowsOpacities(float NewOpacity)
-{
-	if (this->MAP_Windows.Num() > 0)
-	{
-		UPARAM(ref)TArray<UWindowObject*> ArrayWinObjects;
-		this->MAP_Windows.GenerateValueArray(ArrayWinObjects);
-		
-		for (int32 WindowIndex = 0; WindowIndex < ArrayWinObjects.Num(); WindowIndex++)
-		{
-			bool OpacityReturn = UWindowSystemBPLibrary::SetWindowOpacity(ArrayWinObjects[WindowIndex], NewOpacity);
-
-			if (OpacityReturn != true)
-			{
-				break;
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	else
-	{
-		return false;
-	}
+	return;
 }
 
 bool AWindowManager::SetFileDragDropSupport(UPARAM(ref)UWindowObject*& InWindowObject)
 {
-	if (IsValid(InWindowObject) == true)
-	{
-		if (InWindowObject->bIsFileDropEnabled == false)
-		{
-			InWindowObject->bIsFileDropEnabled = true;
-			
-			HWND WidgetWindowHandle = reinterpret_cast<HWND>(InWindowObject->WindowPtr.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
-			DragAcceptFiles(WidgetWindowHandle, true);
-
-			this->MAP_Windows.Add(InWindowObject->WindowTag, InWindowObject);
-
-			return true;
-		}
-
-		else
-		{
-			return false;
-		}
-	}
-
-	else
+	if (IsValid(InWindowObject) == false)
 	{
 		return false;
 	}
+	
+	if (InWindowObject->bIsFileDropEnabled == true)
+	{
+		return false;
+	}
+
+	InWindowObject->bIsFileDropEnabled = true;
+
+	HWND WidgetWindowHandle = reinterpret_cast<HWND>(InWindowObject->WindowPtr.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
+	DragAcceptFiles(WidgetWindowHandle, true);
+
+	return true;
 }

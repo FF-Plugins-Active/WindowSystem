@@ -10,15 +10,19 @@
 #include "Runtime/UMG/Public/UMG.h"
 
 // Windows Includes.
+THIRD_PARTY_INCLUDES_START
 #include "Windows/WindowsHWrapper.h"
 #include "Windows/WindowsApplication.h"				// File Drag Drop Message Handler.
 #include "shellapi.h"								// File Drag Drop Callback.
 #include "dwmapi.h"									// Windows 11 Rounded Window Include.
 #include <winreg.h>                                 // Regedit access.
+#include "winuser.h"
+#include "Windows/MinWindows.h"
 
 // C++ Includes.
 #include <string>
 #include <iostream>
+THIRD_PARTY_INCLUDES_END
 
 #include "WindowSystemBPLibrary.generated.h"
 
@@ -33,10 +37,10 @@ public:
 		FString FilePath;
 
 		UPROPERTY(BlueprintReadWrite)
-		FString SenderWindow;
+		FVector2D DropLocation;
 
 		UPROPERTY(BlueprintReadWrite)
-		FVector2D DropLocation;
+		bool bIsFolder = false;
 };
 
 UENUM(BlueprintType)
@@ -47,97 +51,6 @@ enum class EWindowState : uint8
 	Maximized	UMETA(DisplayName = "Maximized"),
 };
 ENUM_CLASS_FLAGS(EWindowState)
-
-// File Drag Drop Message Handler Subclass.
-class FDragDropHandler : public IWindowsMessageHandler
-{
-
-public:
-
-	// We will use this to print drop informations.
-	AActor* OwnerActor;
-
-	bool ProcessMessage(HWND Hwnd, uint32 Message, WPARAM WParam, LPARAM LParam, int32& OutResult) override
-	{		
-		// Drop System.
-		HDROP DropInfo = (HDROP)WParam;
-		char DroppedFile[MAX_PATH];
-
-		// File Path.
-		std::string EachPath;
-
-		// Drop Location.
-		POINT DropLocation;
-		FVector2D LocationVector;
-
-		// Out Informations.
-		FDroppedFileStruct DropFileStruct;
-		TArray<FDroppedFileStruct> OutArray;
-		
-		// Read Regedit To Get Windows Build Number.
-		HKEY hKey;
-		LONG Result = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0, KEY_READ, &hKey);
-		TCHAR Buffer[MAX_PATH];
-		DWORD BufferSize = sizeof(Buffer);
-		HRESULT hResult = RegQueryValueEx(hKey, L"CurrentBuildNumber", 0, nullptr, reinterpret_cast<LPBYTE>(Buffer), &BufferSize);
-		int32 BuildNumber = FCString::Atoi(Buffer);
-			
-		switch (Message)
-		{
-		case WM_PAINT:
-			
-			if (BuildNumber >= 22000)
-			{
-				/*
-					* Window Roundness Preference.
-					* DWMWCP_DEFAULT = 0
-					* DWMWCP_DONOTROUND = 1
-					* DWMWCP_ROUND = 2
-					* DWMWCP_ROUNDSMALL = 3
-				*/
-				DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
-				DwmSetWindowAttribute(Hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
-			}
-
-			return true;
-			break;
-
-		case WM_DROPFILES:
-			
-			for (int32 FileIndex = 0; DragQueryPoint(DropInfo, &DropLocation) && DragQueryFileA(DropInfo, FileIndex, (LPSTR)DroppedFile, sizeof(DroppedFile)); FileIndex++)
-			{
-				if (GetFileAttributesA(DroppedFile) != FILE_ATTRIBUTE_DIRECTORY)
-				{
-					TCHAR HandleName[256];
-					GetWindowText(Hwnd, HandleName, 256);
-
-					LocationVector.X = DropLocation.x;
-					LocationVector.Y = DropLocation.y;
-
-					EachPath = DroppedFile;
-
-					DropFileStruct.DropLocation = LocationVector;
-					DropFileStruct.FilePath = EachPath.c_str();
-					DropFileStruct.SenderWindow = HandleName;
-
-					OutArray.Add(DropFileStruct);
-				}
-			}
-
-			OwnerActor->ProcessEvent(OwnerActor->FindFunction(FName("OnFileDrop")), &OutArray);
-
-			DragFinish(DropInfo);
-			OutArray.Empty();
-
-			return true;
-			break;
-		
-		default:
-			return false;
-			break;
-		}
-	}
-};
 
 UCLASS(BlueprintType)
 class WINDOWSYSTEM_API UWindowObject : public UObject
@@ -156,6 +69,9 @@ public:
 	
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsFileDropEnabled = false;		// If it is true, CloseWindow function will do additional tasks.
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bHideFromTaskBar = false;
 
 };
 
@@ -185,6 +101,9 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Toggle Show On Task Bar", Keywords = "toggle, show, taskbar, hide"), Category = "Window System|Set")
 	static bool ToggleShowOnTaskBar(UPARAM(ref)UWindowObject*& InWindowObject, bool bShowOnTaskBar);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Toggle Opacity", Keywords = "set, all, window, windows, opacity"), Category = "Window System|Set")
+	static bool ToggleOpacity(UPARAM(ref)UWindowObject*& InWindowObject, bool bEnable);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Window Opacity", Keywords = "set, window, opacity"), Category = "Window System|Set")
 	static bool SetWindowOpacity(UPARAM(ref)UWindowObject*& InWindowObject, float NewOpacity);
@@ -224,8 +143,5 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Take Screenshot of Window", ToolTip = "Export To Disk functions should come after a delay node.", Keywords = "take, ss, screenshot, window"), Category = "Window System|Export")
 	static bool TakeSSWindow(UPARAM(ref)UWindowObject*& InWindowObject, UTextureRenderTarget2D*& OutTextureRenderTarget2D);
-
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Take Screenshot of Widget", ToolTip = "Export To Disk functions should come after a delay node.", Keywords = "take, ss, screenshot, widget"), Category = "Window System|Export")
-	static bool TakeSSWidget(UUserWidget* InWidget, FVector2D InSize, UTextureRenderTarget2D*& OutTextureRenderTarget2D);
 
 };

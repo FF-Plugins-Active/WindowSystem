@@ -11,27 +11,8 @@ UCLASS()
 class WINDOWSYSTEM_API AWindowManager : public AActor
 {
 	GENERATED_BODY()
-	
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 
-	// Called when the game ends or when destroyed
-	virtual void EndPlay(EEndPlayReason::Type Reason) override;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-	bool bAllowMainWindow = true;
-
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Accept Files from Main Window", Description = "Drag Drop Handler is necessary for child windows. So, if we don't want to accept from main window, we can use this filter function.", Keywords = "allow, accept, main, window, viewport"), Category = "Window System|Set")
-	virtual bool AcceptFilesFromMV(FDroppedFileStruct InFile, FDroppedFileStruct& OutFile);
-
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Drag Drop Handler To Main Window", Description = "It adds File Drag Drop message handler to main window. It is necessary to use if there another file drag drop supported window. Because they are child of this window.", Keywords = "add, main, window, viewport, handler"), Category = "Window System|Set")
-	virtual void AddDragDropHandlerToMV();
-
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Remove Drag Drop Handler From Main Window", Keywords = "remove, main, window, viewport, handler"), Category = "Window System|Set")
-	virtual void RemoveDragDropHandlerFromMV();
-
-public:	
+public:
 	// Sets default values for this actor's properties
 	AWindowManager();
 
@@ -40,7 +21,7 @@ public:
 
 	// Window Movement Delegate
 	void NotifyWindowMoved(const TSharedRef<SWindow>& Window);
-	
+
 	// Window Close Delegate
 	void NotifyWindowClosed(const TSharedRef<SWindow>& Window);
 
@@ -52,11 +33,136 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
 	void OnWindowClosed(FName const& ClassName);
+	
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	// Called when the game ends or when destroyed
+	virtual void EndPlay(EEndPlayReason::Type Reason) override;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	bool bAllowMainWindow = true;
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Drag Drop Handler To Main Window", Description = "It adds File Drag Drop message handler to main window. It is necessary to use if there another file drag drop supported window. Because they are child of this window.", Keywords = "add, main, window, viewport, handler"), Category = "Window System|Set")
+	virtual void AddDragDropHandlerToMV();
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Remove Drag Drop Handler From Main Window", Keywords = "remove, main, window, viewport, handler"), Category = "Window System|Set")
+	virtual void RemoveDragDropHandlerFromMV();
+
+public:
+
+	// File Drag Drop Message Handler Subclass.
+	class FDragDropHandler : public IWindowsMessageHandler
+	{
+
+	public:
+
+		AActor* OwnerActor = nullptr;
+
+		bool ProcessMessage(HWND Hwnd, uint32 Message, WPARAM WParam, LPARAM LParam, int32& OutResult) override
+		{
+			// Drop System.
+			AWindowManager* WindowManager = (AWindowManager*)this->OwnerActor;
+			HWND MainWindowHandle;
+			HDROP DropInfo = (HDROP)WParam;
+			
+			// File Path.
+			char* DroppedFile;
+			UINT DroppedFileCount = 0;
+			
+			// Drop Location.
+			POINT DropLocation;
+
+			// Out Structure.
+			FDroppedFileStruct DropFileStruct;
+			TArray<FDroppedFileStruct> OutArray;
+
+			// Read Regedit To Get Windows Build Number.
+			HKEY hKey;
+			LONG Result = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0, KEY_READ, &hKey);
+			DWORD BufferSize;
+			RegQueryValueEx(hKey, L"CurrentBuildNumber", 0, nullptr, NULL, &BufferSize);
+			TCHAR* Buffer = (TCHAR*)malloc(BufferSize);
+			RegQueryValueEx(hKey, L"CurrentBuildNumber", 0, nullptr, reinterpret_cast<LPBYTE>(Buffer), &BufferSize);
+			int32 BuildNumber = FCString::Atoi(Buffer);
+
+			switch (Message)
+			{
+			case WM_PAINT:
+
+				if (BuildNumber >= 22000)
+				{
+					/*
+						* Window Roundness Preference.
+						* DWMWCP_DEFAULT = 0
+						* DWMWCP_DONOTROUND = 1
+						* DWMWCP_ROUND = 2
+						* DWMWCP_ROUNDSMALL = 3
+					*/
+					DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
+					DwmSetWindowAttribute(Hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
+				}
+
+				return true;
+
+			case WM_DROPFILES:
+
+				if (WindowManager->bAllowMainWindow == false)
+				{
+					MainWindowHandle = reinterpret_cast<HWND>(GEngine->GameViewport->GetWindow()->GetNativeWindow()->GetOSWindowHandle());
+					if (Hwnd == MainWindowHandle)
+					{
+						return false;
+					}
+				}
+				
+				DragQueryPoint(DropInfo, &DropLocation);
+
+				DroppedFileCount = DragQueryFileA(DropInfo, 0xFFFFFFFF, NULL, NULL);
+				for (UINT FileIndex = 0; FileIndex < DroppedFileCount; FileIndex++)
+				{
+					UINT PathSize = DragQueryFileA(DropInfo, FileIndex, NULL, 0);
+					if (PathSize > 0)
+					{
+						DropFileStruct.DropLocation = FVector2D(DropLocation.x, DropLocation.y);
+						
+						DroppedFile = (char*)malloc(size_t(PathSize));
+						DragQueryFileA(DropInfo, FileIndex, DroppedFile, PathSize + 1);
+						
+						if (GetFileAttributesA(DroppedFile) != FILE_ATTRIBUTE_DIRECTORY)
+						{
+							DropFileStruct.FilePath = DroppedFile;
+							DropFileStruct.bIsFolder = false;
+						}
+
+						if (GetFileAttributesA(DroppedFile) == FILE_ATTRIBUTE_DIRECTORY)
+						{
+							DropFileStruct.FilePath = DroppedFile;
+							DropFileStruct.bIsFolder = true;
+						}
+						
+						OutArray.Add(DropFileStruct);
+					}
+				}
+
+				WindowManager->OnFileDrop(OutArray);
+				OutArray.Empty();
+				
+				DragFinish(DropInfo);
+				
+				return true;
+
+			default:
+				return false;
+			}
+		}
+	};
 
 public:
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Create New Window", Description = "If you disable \"Hide From Taskbar \", or enable \"Has Close\" there will be risk to remove widget accidently. So, use it with cautious.\nIf your window hide from taskbar, you need to use \"Bring Window Front\" function with some delay to see it.", Keywords = "create, new, window", AdvancedDisplay = "bForceVolatile, bPreserveAspectRatio, bSupportsMaximized, bSupportsMinimized, bSetMirrorWindow, bAllowFileDrop, InToolTip, DropColor"), Category = "Window System|Constructs")
-	virtual bool CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost = false, bool bHasClose = false, bool bForceVolatile = false, bool bPreserveAspectRatio = false, bool bMinimized = false, bool bSupportsMaximized = false, bool bSupportsMinimized = false, bool bSetMirrorWindow = false, bool bHideFromTaskBar = true, FName InWindowTag = NAME_None, FText InWindowTitle = INVTEXT("None"), FText InToolTip = INVTEXT("None"), FVector2D WindowSize = FVector2D::ZeroVector, FVector2D MinSize = FVector2D::ZeroVector, FVector2D WindowPosition = FVector2D::ZeroVector, FMargin InBorder = FMargin(), float InOpacity = 0);
+	virtual bool CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost = false, bool bHasClose = false, bool bForceVolatile = false, bool bPreserveAspectRatio = false, bool bMinimized = false, bool bSupportsMaximized = false, bool bSupportsMinimized = false, bool bSetMirrorWindow = false, bool bHideFromTaskBar = true, FName InWindowTag = NAME_None, FText InWindowTitle = INVTEXT("None"), FText InToolTip = INVTEXT("None"), FVector2D WindowSize = FVector2D::ZeroVector, FVector2D MinSize = FVector2D::ZeroVector, FVector2D WindowPosition = FVector2D::ZeroVector, FMargin InBorder = FMargin());
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Close Window", Keywords = "close, window"), Category = "Window System|Constructs")
 	virtual bool CloseWindow(UPARAM(ref)UWindowObject*& InWindowObject);
@@ -67,9 +173,6 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Detect Hovered Window", Keywords = "detect, hovered, window"), Category = "Window System|Check")
 	virtual void DetectHoveredWindow(FDelegateDetectHovered DelegateHovered);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set All Windows Opacities", Keywords = "set, all, window, windows, opacity"), Category = "Window System|Set")
-	virtual bool SetAllWindowsOpacities(float NewOpacity);
-
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set File Drag Drop Support", Keywords = "set, file, drag, drop, support, child, window, windows"), Category = "Window System|Set")
 	virtual bool SetFileDragDropSupport(UPARAM(ref)UWindowObject*& InWindowObject);
 
@@ -78,7 +181,7 @@ public:
 	* We use this to record windows.
 	* DO NOT CHANGE THIS IN EDITOR ! USE ONLY WITH BLUEPRINTS !
 	*/
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
 	TMap<FName, UWindowObject*> MAP_Windows;
 
 	// Constructed message handler subclass for main window.
