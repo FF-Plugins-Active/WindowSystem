@@ -155,6 +155,11 @@ bool UWindowSystemBPLibrary::ToggleOpacity(UPARAM(ref)UWindowObject*& InWindowOb
 		return false;
 	}
 
+	if (InWindowObject->bIsFileDropEnabled == true)
+	{
+		return false;
+	}
+
 	HWND WidgetWindowHandle = reinterpret_cast<HWND>(InWindowObject->WindowPtr.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
 
 	if (bEnable)
