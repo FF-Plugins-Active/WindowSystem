@@ -70,19 +70,36 @@ void AWindowManager::RemoveDragDropHandlerFromMV()
 	}
 }
 
-bool AWindowManager::CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost, bool bHasClose, bool bForceVolatile, bool bPreserveAspectRatio, bool bMinimized, bool bSupportsMaximized, bool bSupportsMinimized, bool bSetMirrorWindow, bool bHideFromTaskBar, FName InWindowTag, FText InWindowTitle, FText InToolTip, FVector2D WindowSize, FVector2D MinSize, FVector2D WindowPosition, FMargin InBorder)
+bool AWindowManager::CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref)UUserWidget*& InChildWidget, EWindowTypeBp In_Window_Type, bool bIsTopMost, bool bHasClose, bool bForceVolatile, bool bPreserveAspectRatio, bool bMinimized, bool bSupportsMaximized, bool bSupportsMinimized, bool bSetMirrorWindow, bool bShowOnTaskBar, bool bUseNativeBorder, FName InWindowTag, FText InWindowTitle, FText InToolTip, FLinearColor TitleColor, FVector2D WindowSize, FVector2D MinSize, FVector2D MaxSize, FVector2D WindowPosition, FMargin InBorder)
 {
-	// We need to crete UObject for moving SWindow, HWND, widget contents and other in blueprints.
-	UWindowObject* WindowObject = NewObject<UWindowObject>();
+	// Styles
+	EWindowType WindowType = EWindowType::GameWindow;
+	switch (In_Window_Type)
+	{
+	case EWindowTypeBp::Normal:
+		WindowType = EWindowType::Normal;
+		break;
+	case EWindowTypeBp::Menu:
+		WindowType = EWindowType::Menu;
+		break;
+	case EWindowTypeBp::ToolTip:
+		WindowType = EWindowType::ToolTip;
+		break;
+	case EWindowTypeBp::Notification:
+		WindowType = EWindowType::Notification;
+		break;
+	case EWindowTypeBp::CursorDecorator:
+		WindowType = EWindowType::CursorDecorator;
+		break;
+	case EWindowTypeBp::GameWindow:
+		WindowType = EWindowType::GameWindow;
+		break;
+	}
 
 	// Blueprints exposed UObject should contain TSharedPtr NOT TSharedRef.
-	TSharedPtr<SWindow> WidgetWindow;
-
-	WidgetWindow = SNew(SWindow)
+	TSharedPtr<SWindow> WidgetWindow = SNew(SWindow)
 		.bDragAnywhere(true)
 		.ClientSize(WindowSize)
-		.MinHeight(MinSize.Y)
-		.MinWidth(MinSize.X)
 		.LayoutBorder(InBorder)
 		.UserResizeBorder(InBorder)
 		.Title(InWindowTitle)
@@ -96,44 +113,75 @@ bool AWindowManager::CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref
 		.SupportsMaximize(bSupportsMaximized)
 		.SupportsTransparency(EWindowTransparency::PerWindow)
 		.IsTopmostWindow(bIsTopMost)
-		.Type(EWindowType::GameWindow)
-		;
+		.Type(WindowType)
+		.UseOSWindowBorder(bUseNativeBorder)
+	;
+	
+	FWindowSizeLimits SizeLimits;
+	SizeLimits.SetMinWidth(MinSize.X);
+	SizeLimits.SetMinHeight(MinSize.Y);
+	
+	if (MaxSize.X == 0)
+	{
+		MaxSize.X = GEngine->GetGameUserSettings()->GetScreenResolution().X;
+	}
+
+	else
+	{
+		SizeLimits.SetMaxWidth(MaxSize.X);
+	}
+
+	if (MaxSize.Y == 0)
+	{
+		MaxSize.Y = GEngine->GetGameUserSettings()->GetScreenResolution().Y;
+	}
+
+	else
+	{
+		SizeLimits.SetMaxHeight(MaxSize.Y);
+	}
 	
 	WidgetWindow->SetContent(InChildWidget->TakeWidget());
 	WidgetWindow->SetAllowFastUpdate(true);
 	WidgetWindow->SetMirrorWindow(bSetMirrorWindow);
 	WidgetWindow->MoveWindowTo(WindowPosition);
 	WidgetWindow->SetTag(InWindowTag);
-
-	// Initialize window events.
+	WidgetWindow->SetNativeWindowButtonsVisibility(bHasClose);
+	WidgetWindow->SetForegroundColor(TitleColor);
+	WidgetWindow->SetSizeLimits(SizeLimits);
 	WidgetWindow->SetOnWindowMoved(FOnWindowClosed::CreateUObject(this, &AWindowManager::NotifyWindowMoved));
 	WidgetWindow->SetOnWindowClosed(FOnWindowClosed::CreateUObject(this, &AWindowManager::NotifyWindowClosed));
 
 	// Add created window to Slate.
 	FSlateApplication::Get().AddWindow(WidgetWindow.ToSharedRef(), true);
 
-	// Set window UObject parameters.
-	WindowObject->WindowPtr = WidgetWindow;
-	WindowObject->ContentWidget = InChildWidget;
-	WindowObject->WindowTag = InWindowTag;
-	WindowObject->bHideFromTaskBar = bHideFromTaskBar;
-
 	// Hide Window from Taskbar.
 	HWND WidgetWindowHandle = reinterpret_cast<HWND>(WidgetWindow.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
 
-	if (bHideFromTaskBar == true)
-	{
-		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE | WS_EX_TRANSPARENT);
-	}
-
-	else
+	if (bShowOnTaskBar == true)
 	{
 		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TRANSPARENT);
 	}
 
-	// Return values.
+	else
+	{
+		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE | WS_EX_TRANSPARENT);
+	}
+
+	/*
+	* Set window UObject parameters.
+	* We need to crete UObject for moving SWindow, HWND, widget contents and other in blueprints.
+	*/
+	UWindowObject* WindowObject = NewObject<UWindowObject>();
+	WindowObject->WindowPtr = WidgetWindow;
+	WindowObject->ContentWidget = InChildWidget;
+	WindowObject->WindowTag = InWindowTag;
+	WindowObject->bShowOnTaskBar = bShowOnTaskBar;
 	this->MAP_Windows.Add(InWindowTag, WindowObject);
+
+	// Return values.
 	OutWindowObject = WindowObject;
+
 	return true;
 }
 

@@ -131,19 +131,40 @@ bool UWindowSystemBPLibrary::ToggleShowOnTaskBar(UPARAM(ref)UWindowObject*& InWi
 
 	if (bShowOnTaskBar == true)
 	{
-		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
+		if (InWindowObject->bIsTransparent == true)
+		{
+			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TRANSPARENT | WS_EX_LAYERED);
+		}
+
+		else
+		{
+			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
+		}
+		
 		UWindowSystemBPLibrary::BringWindowFront(InWindowObject, true);
+		
+		InWindowObject->bShowOnTaskBar = bShowOnTaskBar;
 	}
 
 	else
 	{
-		SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE);
+		if (InWindowObject->bIsTransparent == true)
+		{
+			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYERED);
+		}
+
+		else
+		{
+			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE);
+		}
+		
+		InWindowObject->bShowOnTaskBar = bShowOnTaskBar;
 	}
 
 	return true;
 }
 
-bool UWindowSystemBPLibrary::ToggleOpacity(UPARAM(ref)UWindowObject*& InWindowObject, bool bEnable)
+bool UWindowSystemBPLibrary::ToggleOpacity(UPARAM(ref)UWindowObject*& InWindowObject, bool bEnable, bool bPassDragDrop)
 {
 	if (IsValid(InWindowObject) == false)
 	{
@@ -157,35 +178,42 @@ bool UWindowSystemBPLibrary::ToggleOpacity(UPARAM(ref)UWindowObject*& InWindowOb
 
 	if (InWindowObject->bIsFileDropEnabled == true)
 	{
-		return false;
+		if (bPassDragDrop == false)
+		{
+			return false;
+		}
 	}
 
 	HWND WidgetWindowHandle = reinterpret_cast<HWND>(InWindowObject->WindowPtr.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
 
 	if (bEnable)
 	{
-		if (InWindowObject->bHideFromTaskBar == true)
+		if (InWindowObject->bShowOnTaskBar == true)
+		{
+			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TRANSPARENT | WS_EX_LAYERED);
+		}
+
+		else
 		{
 			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYERED);
 		}
 
-		else
-		{
-			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TRANSPARENT | WS_EX_LAYERED);
-		}
+		InWindowObject->bIsTransparent = true;
 	}
 
 	else
 	{
-		if (InWindowObject->bHideFromTaskBar == true)
+		if (InWindowObject->bShowOnTaskBar == true)
 		{
-			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE | WS_EX_TRANSPARENT);
+			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TRANSPARENT);
 		}
 
 		else
 		{
-			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TRANSPARENT);
+			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_NOACTIVATE | WS_EX_TRANSPARENT);
 		}
+
+		InWindowObject->bIsTransparent = false;
 	}
 
 	return true;

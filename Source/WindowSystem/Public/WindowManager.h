@@ -51,6 +51,15 @@ protected:
 	virtual void RemoveDragDropHandlerFromMV();
 
 public:
+	class FStyleContainer : public UObject
+	{
+	
+	public:
+		
+		static FWindowStyle WindowStyle;
+	};
+
+public:
 
 	// File Drag Drop Message Handler Subclass.
 	class FDragDropHandler : public IWindowsMessageHandler
@@ -161,8 +170,8 @@ public:
 
 public:
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Create New Window", Description = "If you disable \"Hide From Taskbar \", or enable \"Has Close\" there will be risk to remove widget accidently. So, use it with cautious.\nIf your window hide from taskbar, you need to use \"Bring Window Front\" function with some delay to see it.", Keywords = "create, new, window", AdvancedDisplay = "bForceVolatile, bPreserveAspectRatio, bSupportsMaximized, bSupportsMinimized, bSetMirrorWindow, bAllowFileDrop, InToolTip, DropColor"), Category = "Window System|Constructs")
-	virtual bool CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref)UUserWidget*& InChildWidget, bool bIsTopMost = false, bool bHasClose = false, bool bForceVolatile = false, bool bPreserveAspectRatio = false, bool bMinimized = false, bool bSupportsMaximized = false, bool bSupportsMinimized = false, bool bSetMirrorWindow = false, bool bHideFromTaskBar = true, FName InWindowTag = NAME_None, FText InWindowTitle = INVTEXT("None"), FText InToolTip = INVTEXT("None"), FVector2D WindowSize = FVector2D::ZeroVector, FVector2D MinSize = FVector2D::ZeroVector, FVector2D WindowPosition = FVector2D::ZeroVector, FMargin InBorder = FMargin());
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Create New Window", Description = "If you disable \"Hide From Taskbar \", or enable \"Has Close\" there will be risk to remove widget accidently. So, use it with cautious.\nIf your window hide from taskbar, you need to use \"Bring Window Front\" function with some delay to see it.", Keywords = "create, new, window", AdvancedDisplay = "In_Window_Type, bForceVolatile, bPreserveAspectRatio, bSupportsMaximized, bSupportsMinimized, bSetMirrorWindow, bAllowFileDrop, bUseNativeBorder, InToolTip, TitleColor"), Category = "Window System|Constructs")
+	virtual bool CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref)UUserWidget*& InChildWidget, EWindowTypeBp In_Window_Type = EWindowTypeBp::GameWindow, bool bIsTopMost = false, bool bHasClose = false, bool bForceVolatile = false, bool bPreserveAspectRatio = false, bool bMinimized = false, bool bSupportsMaximized = false, bool bSupportsMinimized = false, bool bSetMirrorWindow = false, bool bShowOnTaskBar = false, bool bUseNativeBorder = false, FName InWindowTag = NAME_None, FText InWindowTitle = INVTEXT("None"), FText InToolTip = INVTEXT("None"), FLinearColor TitleColor = FLinearColor::White, FVector2D WindowSize = FVector2D::ZeroVector, FVector2D MinSize = FVector2D::ZeroVector, FVector2D MaxSize = FVector2D::ZeroVector, FVector2D WindowPosition = FVector2D::ZeroVector, FMargin InBorder = FMargin());
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Close Window", Keywords = "close, window"), Category = "Window System|Constructs")
 	virtual bool CloseWindow(UPARAM(ref)UWindowObject*& InWindowObject);

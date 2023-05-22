@@ -52,6 +52,18 @@ enum class EWindowState : uint8
 };
 ENUM_CLASS_FLAGS(EWindowState)
 
+UENUM(BlueprintType)
+enum class EWindowTypeBp : uint8
+{
+	Normal				UMETA(DisplayName = "Normal"),
+	Menu				UMETA(DisplayName = "Menu"),
+	ToolTip				UMETA(DisplayName = "ToolTip"),
+	Notification		UMETA(DisplayName = "Notification"),
+	CursorDecorator		UMETA(DisplayName = "CursorDecorator"),
+	GameWindow			UMETA(DisplayName = "GameWindow"),
+};
+ENUM_CLASS_FLAGS(EWindowTypeBp)
+
 UCLASS(BlueprintType)
 class WINDOWSYSTEM_API UWindowObject : public UObject
 {
@@ -71,8 +83,10 @@ public:
 	bool bIsFileDropEnabled = false;		// If it is true, CloseWindow function will do additional tasks.
 
 	UPROPERTY(BlueprintReadOnly)
-	bool bHideFromTaskBar = false;
+	bool bShowOnTaskBar = false;
 
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsTransparent = false;
 };
 
 // Blueprint exposed delegate for GetViewportDragState and GetWindowDragState
@@ -103,7 +117,7 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 	static bool ToggleShowOnTaskBar(UPARAM(ref)UWindowObject*& InWindowObject, bool bShowOnTaskBar);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Toggle Opacity", Keywords = "set, all, window, windows, opacity"), Category = "Window System|Set")
-	static bool ToggleOpacity(UPARAM(ref)UWindowObject*& InWindowObject, bool bEnable);
+	static bool ToggleOpacity(UPARAM(ref)UWindowObject*& InWindowObject, bool bEnable, bool bPassDragDrop);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Window Opacity", Keywords = "set, window, opacity"), Category = "Window System|Set")
 	static bool SetWindowOpacity(UPARAM(ref)UWindowObject*& InWindowObject, float NewOpacity);
