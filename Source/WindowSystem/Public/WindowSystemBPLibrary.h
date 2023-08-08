@@ -93,9 +93,6 @@ public:
 UDELEGATE(BlueprintAuthorityOnly)
 DECLARE_DYNAMIC_DELEGATE_OneParam(FDelegateHover, bool, bIsHovered);
 
-UDELEGATE(BlueprintAuthorityOnly)
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FDelegateDetectHovered, bool, bIsHovered, UWindowObject*, OutHovered);
-
 UCLASS()
 class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 {

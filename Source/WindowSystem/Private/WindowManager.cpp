@@ -31,7 +31,15 @@ void AWindowManager::EndPlay(EEndPlayReason::Type Reason)
 // Called every frame
 void AWindowManager::Tick(float DeltaTime)
 {
+	if (bReadScreenColor && GetKeyState(VK_LBUTTON) & 0x80)
+	{
+		this->ReadScreenColor();
+	}
+
+	this->DetectHoveredWindow();
+
 	Super::Tick(DeltaTime);
+
 }
 
 void AWindowManager::NotifyWindowMoved(const TSharedRef<SWindow>& Window)
@@ -72,6 +80,11 @@ void AWindowManager::RemoveDragDropHandlerFromMV()
 
 bool AWindowManager::CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref)UUserWidget*& InChildWidget, EWindowTypeBp In_Window_Type, bool bIsTopMost, bool bHasClose, bool bForceVolatile, bool bPreserveAspectRatio, bool bMinimized, bool bSupportsMaximized, bool bSupportsMinimized, bool bSetMirrorWindow, bool bShowOnTaskBar, bool bUseNativeBorder, FName InWindowTag, FText InWindowTitle, FText InToolTip, FLinearColor TitleColor, FVector2D WindowSize, FVector2D MinSize, FVector2D MaxSize, FVector2D WindowPosition, FMargin InBorder)
 {
+	if (InWindowTag.IsNone() || InWindowTag.ToString().IsEmpty())
+	{
+		return false;
+	}
+
 	// Styles
 	EWindowType WindowType = EWindowType::GameWindow;
 	switch (In_Window_Type)
@@ -233,11 +246,10 @@ bool AWindowManager::CloseAllWindows()
 	}
 }
 
-void AWindowManager::DetectHoveredWindow(FDelegateDetectHovered DelegateHovered)
+void AWindowManager::DetectHoveredWindow()
 {
 	if (this->MAP_Windows.Num() <= 0)
 	{
-		DelegateHovered.ExecuteIfBound(false, nullptr);
 		return;
 	}
 	
@@ -248,28 +260,25 @@ void AWindowManager::DetectHoveredWindow(FDelegateDetectHovered DelegateHovered)
 	{
 		if (IsValid(ArrayWinObjects[WindowIndex]) == false)
 		{
-			DelegateHovered.ExecuteIfBound(false, nullptr);
+			this->OnWindowHovered(false, nullptr);
 			continue;
 		}
 		
 		if (ArrayWinObjects[WindowIndex]->WindowPtr.IsValid() == false)
 		{
-			DelegateHovered.ExecuteIfBound(false, nullptr);
+			this->OnWindowHovered(false, nullptr);
 			continue;
 		}
 		
 		if (ArrayWinObjects[WindowIndex]->WindowPtr.ToSharedRef().Get().IsHovered() == false)
 		{
-			DelegateHovered.ExecuteIfBound(false, nullptr);
+			this->OnWindowHovered(false, nullptr);
 			continue;
 		}
 		
-		DelegateHovered.ExecuteIfBound(true, ArrayWinObjects[WindowIndex]);
-		WindowIndex = 0;
+		this->OnWindowHovered(true, ArrayWinObjects[WindowIndex]);
 		break;
 	}
-
-	return;
 }
 
 bool AWindowManager::SetFileDragDropSupport(UPARAM(ref)UWindowObject*& InWindowObject)
@@ -290,4 +299,39 @@ bool AWindowManager::SetFileDragDropSupport(UPARAM(ref)UWindowObject*& InWindowO
 	DragAcceptFiles(WidgetWindowHandle, true);
 
 	return true;
+}
+
+void AWindowManager::ReadScreenColor()
+{
+	HWND ScreenHandle = GetDesktopWindow();
+	if (!ScreenHandle)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Screen Handle"));
+		return;
+	}
+	
+	HDC ScreenContext = GetDC(ScreenHandle);
+	if (!ScreenContext)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Screen Context"));
+		return;
+	}
+	
+	POINT RawPos;
+	bool GotCursorPos = GetCursorPos(&RawPos);
+	if (!GotCursorPos)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Got Cursor Pos : %d"), GetLastError());
+		return;
+	}
+
+	COLORREF RawColor = GetPixel(ScreenContext, RawPos.x, RawPos.y);
+	FLinearColor PositionColor;
+	PositionColor.R = GetRValue(RawColor);
+	PositionColor.G = GetGValue(RawColor);
+	PositionColor.B = GetBValue(RawColor);
+	PositionColor.A = 255;
+
+	this->OnCursorPosColor(FVector2D(RawPos.x, RawPos.y), PositionColor);
+	ReleaseDC(ScreenHandle, ScreenContext);
 }

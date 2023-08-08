@@ -18,7 +18,10 @@
 		{
 			"Name": "WindowSystem",
 			"Type": "Runtime",
-			"LoadingPhase": "PreLoadingScreen"
+			"LoadingPhase": "PreLoadingScreen",
+			"PlatformAllowList": [
+				"Win64"
+			]
 		}
 	]
 }

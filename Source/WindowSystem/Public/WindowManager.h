@@ -13,49 +13,11 @@ class WINDOWSYSTEM_API AWindowManager : public AActor
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
-	AWindowManager();
-
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Window Movement Delegate
-	void NotifyWindowMoved(const TSharedRef<SWindow>& Window);
-
-	// Window Close Delegate
-	void NotifyWindowClosed(const TSharedRef<SWindow>& Window);
-
-	UFUNCTION(BlueprintImplementableEvent, meta = (Description = "Message came from WindowSystemBPLibrary.h \"OwnerActor->ProcessEvent(OwnerActor->FindFunction(FName(\"OnFileDrop\")), &OutArray);\""), Category = "Window System|Events")
-	void OnFileDrop(TArray<FDroppedFileStruct> const& OutMap);
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
-	void OnWindowMoved(FName const& ClassName);
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
-	void OnWindowClosed(FName const& ClassName);
-	
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	// Called when the game ends or when destroyed
-	virtual void EndPlay(EEndPlayReason::Type Reason) override;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-	bool bAllowMainWindow = true;
-
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Drag Drop Handler To Main Window", Description = "It adds File Drag Drop message handler to main window. It is necessary to use if there another file drag drop supported window. Because they are child of this window.", Keywords = "add, main, window, viewport, handler"), Category = "Window System|Set")
-	virtual void AddDragDropHandlerToMV();
-
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Remove Drag Drop Handler From Main Window", Keywords = "remove, main, window, viewport, handler"), Category = "Window System|Set")
-	virtual void RemoveDragDropHandlerFromMV();
-
-public:
 	class FStyleContainer : public UObject
 	{
-	
+
 	public:
-		
+
 		static FWindowStyle WindowStyle;
 	};
 
@@ -75,11 +37,11 @@ public:
 			AWindowManager* WindowManager = (AWindowManager*)this->OwnerActor;
 			HWND MainWindowHandle;
 			HDROP DropInfo = (HDROP)WParam;
-			
+
 			// File Path.
 			char* DroppedFile;
 			UINT DroppedFileCount = 0;
-			
+
 			// Drop Location.
 			POINT DropLocation;
 
@@ -125,7 +87,7 @@ public:
 						return false;
 					}
 				}
-				
+
 				DragQueryPoint(DropInfo, &DropLocation);
 
 				DroppedFileCount = DragQueryFileA(DropInfo, 0xFFFFFFFF, NULL, NULL);
@@ -135,10 +97,10 @@ public:
 					if (PathSize > 0)
 					{
 						DropFileStruct.DropLocation = FVector2D(DropLocation.x, DropLocation.y);
-						
+
 						DroppedFile = (char*)malloc(size_t(PathSize));
 						DragQueryFileA(DropInfo, FileIndex, DroppedFile, PathSize + 1);
-						
+
 						if (GetFileAttributesA(DroppedFile) != FILE_ATTRIBUTE_DIRECTORY)
 						{
 							DropFileStruct.FilePath = DroppedFile;
@@ -150,16 +112,16 @@ public:
 							DropFileStruct.FilePath = DroppedFile;
 							DropFileStruct.bIsFolder = true;
 						}
-						
+
 						OutArray.Add(DropFileStruct);
 					}
 				}
 
 				WindowManager->OnFileDrop(OutArray);
 				OutArray.Empty();
-				
+
 				DragFinish(DropInfo);
-				
+
 				return true;
 
 			default:
@@ -167,6 +129,54 @@ public:
 			}
 		}
 	};
+
+public:
+	// Sets default values for this actor's properties
+	AWindowManager();
+
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION(BlueprintImplementableEvent, meta = (Description = "Message came from WindowSystemBPLibrary.h \"OwnerActor->ProcessEvent(OwnerActor->FindFunction(FName(\"OnFileDrop\")), &OutArray);\""), Category = "Window System|Events")
+	void OnFileDrop(TArray<FDroppedFileStruct> const& OutMap);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
+	void OnWindowMoved(FName const& ClassName);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
+	void OnWindowClosed(FName const& ClassName);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
+	void OnWindowHovered(bool bIsHovered, UWindowObject* const& OutHovered);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
+	void OnCursorPosColor(FVector2D const& Position, FLinearColor const& Color);
+	
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	// Called when the game ends or when destroyed
+	virtual void EndPlay(EEndPlayReason::Type Reason) override;
+
+	// Window Movement Delegate
+	void NotifyWindowMoved(const TSharedRef<SWindow>& Window);
+
+	// Window Close Delegate
+	void NotifyWindowClosed(const TSharedRef<SWindow>& Window);
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	bool bAllowMainWindow = true;
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Drag Drop Handler To Main Window", Description = "It adds File Drag Drop message handler to main window. It is necessary to use if there another file drag drop supported window. Because they are child of this window.", Keywords = "add, main, window, viewport, handler"), Category = "Window System|Set")
+	virtual void AddDragDropHandlerToMV();
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Remove Drag Drop Handler From Main Window", Keywords = "remove, main, window, viewport, handler"), Category = "Window System|Set")
+	virtual void RemoveDragDropHandlerFromMV();
+
+	void ReadScreenColor();
+
+
 
 public:
 
@@ -180,12 +190,11 @@ public:
 	virtual bool CloseAllWindows();
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Detect Hovered Window", Keywords = "detect, hovered, window"), Category = "Window System|Check")
-	virtual void DetectHoveredWindow(FDelegateDetectHovered DelegateHovered);
+	virtual void DetectHoveredWindow();
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set File Drag Drop Support", Keywords = "set, file, drag, drop, support, child, window, windows"), Category = "Window System|Set")
 	virtual bool SetFileDragDropSupport(UPARAM(ref)UWindowObject*& InWindowObject);
 
-public:
 	/*
 	* We use this to record windows.
 	* DO NOT CHANGE THIS IN EDITOR ! USE ONLY WITH BLUEPRINTS !
@@ -193,6 +202,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
 	TMap<FName, UWindowObject*> MAP_Windows;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bReadScreenColor = false;
+
 	// Constructed message handler subclass for main window.
 	FDragDropHandler DragDropHandler;
+
 };
