@@ -4,6 +4,9 @@
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 
+// Custom Includes.
+#include "WindowEnums.h"
+
 // UE Includes.
 #include "Widgets/SWindow.h"
 #include "Widgets/SWidget.h"
@@ -27,7 +30,52 @@ THIRD_PARTY_INCLUDES_END
 #include "WindowSystemBPLibrary.generated.h"
 
 USTRUCT(BlueprintType)
-struct FDroppedFileStruct
+struct WINDOWSYSTEM_API FSelectedFiles
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(BlueprintReadOnly)
+	bool IsSuccessfull = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool IsFolder = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FString> Strings;
+};
+
+USTRUCT(BlueprintType)
+struct WINDOWSYSTEM_API FFolderContent
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(BlueprintReadOnly)
+	FString Path = "";
+
+	UPROPERTY(BlueprintReadOnly)
+	FString Name = "";
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsFile = false;
+};
+
+USTRUCT(BlueprintType)
+struct WINDOWSYSTEM_API FContentArrayContainer
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FFolderContent> OutContents;
+};
+
+USTRUCT(BlueprintType)
+struct WINDOWSYSTEM_API FDroppedFileStruct
 {
 	GENERATED_BODY()
 
@@ -42,27 +90,6 @@ public:
 		UPROPERTY(BlueprintReadWrite)
 		bool bIsFolder = false;
 };
-
-UENUM(BlueprintType)
-enum class EWindowState : uint8
-{
-	Minimized	UMETA(DisplayName = "Minimized"),
-	Restored	UMETA(DisplayName = "Restored"),
-	Maximized	UMETA(DisplayName = "Maximized"),
-};
-ENUM_CLASS_FLAGS(EWindowState)
-
-UENUM(BlueprintType)
-enum class EWindowTypeBp : uint8
-{
-	Normal				UMETA(DisplayName = "Normal"),
-	Menu				UMETA(DisplayName = "Menu"),
-	ToolTip				UMETA(DisplayName = "ToolTip"),
-	Notification		UMETA(DisplayName = "Notification"),
-	CursorDecorator		UMETA(DisplayName = "CursorDecorator"),
-	GameWindow			UMETA(DisplayName = "GameWindow"),
-};
-ENUM_CLASS_FLAGS(EWindowTypeBp)
 
 UCLASS(BlueprintType)
 class WINDOWSYSTEM_API UWindowObject : public UObject
@@ -92,6 +119,15 @@ public:
 // Blueprint exposed delegate for GetViewportDragState and GetWindowDragState
 UDELEGATE(BlueprintAuthorityOnly)
 DECLARE_DYNAMIC_DELEGATE_OneParam(FDelegateHover, bool, bIsHovered);
+
+UDELEGATE(BlueprintAuthorityOnly)
+DECLARE_DYNAMIC_DELEGATE_OneParam(FDelegateOpenFile, FSelectedFiles, OutFileNames);
+
+UDELEGATE(BlueprintAuthorityOnly)
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FDelegateSaveFile, bool, bIsSaveSuccessful, FString, OutFileName);
+
+UDELEGATE(BlueprintAuthorityOnly)
+DECLARE_DYNAMIC_DELEGATE_ThreeParams(FDelegateSearch, bool, bIsSearchSuccessful, FString, ErrorCode, FContentArrayContainer, Out);
 
 UCLASS()
 class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
@@ -154,5 +190,17 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Take Screenshot of Window", ToolTip = "Export To Disk functions should come after a delay node.", Keywords = "take, ss, screenshot, window"), Category = "Window System|Export")
 	static bool TakeSSWindow(UPARAM(ref)UWindowObject*& InWindowObject, UTextureRenderTarget2D*& OutTextureRenderTarget2D);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Select File From Dialog", ToolTip = "If you enable \"Allow Folder Selection\", extension filtering will be disabled. \nExtension filtering uses a String to String MAP variable. \nKey is description and value is extension's itself. You need to write like this without quotes \"*.extension\". \nIf one extension group has multiple extensions, you need to use \";\" after each one.", Keywords = "select, file, folder, dialog, windows, explorer"), Category = "Window System|File Dialog")
+	static void SelectFileFromDialog(FDelegateOpenFile DelegateFileNames, const FString InDialogName, const FString InOkLabel, const FString InDefaultPath, TMap<FString, FString> InExtensions, int32 DefaultExtensionIndex, bool bIsNormalizeOutputs = true, bool bAllowFolderSelection = false);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Save File with Dialog", ToolTip = "Each extension group must have only one extension. \nIf that group has multiple variation, you should define one by one all of them if you need them. \nAlso you need to write them as \"*.extension\".", Keywords = "save, file, dialog, windows, explorer"), Category = "Window System|File Dialog")
+	static void SaveFileDialog(FDelegateSaveFile DelegateSaveFile, const FString InDialogName, const FString InOkLabel, const FString InDefaultPath, TMap<FString, FString> InExtensions, int32 DefaultExtensionIndex, bool bIsNormalizeOutputs = true);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Folder Contents", ToolTip = "Description.", Keywords = "explorer, load, file, folder, content"), Category = "File Converters|File Dialog")
+	static bool GetFolderContents(TArray<FFolderContent>& OutContents, FString& ErrorCode, FString InPath);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Search In Folder", ToolTip = "Description.", Keywords = "explorer, load, file, folder, content"), Category = "File Converters|File Dialog")
+	static void SearchInFolder(FDelegateSearch DelegateSearch, FString InPath, FString InSearch, bool bSearchExact);
 
 };
