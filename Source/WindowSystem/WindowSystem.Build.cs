@@ -1,5 +1,7 @@
 // Some copyright should be here...
 
+using System;
+using System.IO;
 using UnrealBuildTool;
 
 public class WindowSystem : ModuleRules
@@ -7,22 +9,17 @@ public class WindowSystem : ModuleRules
 	public WindowSystem(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
-		PublicIncludePaths.AddRange(
-			new string[] {
-				// ... add public include paths required here ...
-			}
-			);
-				
-		
-		PrivateIncludePaths.AddRange(
-			new string[] {
-				// ... add other private include paths required here ...
-			}
-			);
-			
-		
-		PublicDependencyModuleNames.AddRange(
+
+        if (UnrealTargetPlatform.Win64 == Target.Platform)
+        {
+			// Nuklear
+            string Include_Nuklear = "../Source/WindowSystem/ThirdParty/nuklear";
+            PrivateIncludePaths.Add(Include_Nuklear);
+
+			// Imgui (FUTURE)
+        }
+
+        PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
@@ -30,7 +27,6 @@ public class WindowSystem : ModuleRules
 			}
 			);
 			
-		
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
