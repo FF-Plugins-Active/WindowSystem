@@ -1,10 +1,8 @@
-# WindowSystem
-
 # PURPOSES AND FEATURES:
 - Runtime external window creation with UMG support.
 - Runtime **Save and Select File Dialogs**
 - File drag drop supports for main game window and external windows. It returns, content paths and content locations.
-- If operating system is Windows 11, created windows will have rounded corners.
+- If operating system is **Windows 11**, created windows will have **rounded corners**.
 - Hover, window move and close detection events.
 
 # USAGE:
@@ -20,11 +18,11 @@
 - Connect your manager and widget to **Spawn Actor From Class**
 
 - Set your settings
-	- You have to give a unique tag (optionally meaningful) to your window.
+	- You have to give a unique tag **(optionally meaningful)** to your window.
 
 - All window control functions are virtual functions of spawned EachWindow class object.
 
-- You can access all created windows with **Manager->MAP_Windows** (FName, AEachWindow>. If you know the tag of window which you want to control, you can access it from this map.
+- You can access all created windows with **Manager->MAP_Windows** (FName, AEachWindow). If you know the tag of window which you want to control, you can access it from this map.
 
 - If you want to enable file drag drop feature for created window, you have two options.
 	- You can enable it when set enable **bIsFileDropEnabled** boolean on **Spawn Actor from Class**
@@ -39,17 +37,17 @@
 # ADDITIONAL CONTROL FUNCTIONS FOR WINDOWS
 - Take Screenshot of Window
 
-- (Variable) WindowTag
-- (Variable) ContentWidget (UMG Widget)
+- **(Variable)** WindowTag
+- **(UMG Widget Variable)** ContentWidget
 
 - Set Window Opacity
-- Set Window State (Minimmized / Restored / Maximized)
-- Set Window Shape (Give new position and or size with an animation)
+- Set Window State **(Minimmized / Restored / Maximized)
+- Set Window Shape **(Give new position and or size with an animation)**
 - Set Window Position
 - Set Window Title
 
-- Get Window State (returns enums Minimized / Restored / Maximized)
-- Get Window Position (return screen position as FVector2D)
+- Get Window State **(returns enums Minimized / Restored / Maximized)**
+- Get Window Position **(return screen position as FVector2D)**
 - Get Window Title
 
 - Is Window Top Most
@@ -61,9 +59,9 @@
 
 - Set File Drag Drop Support
 
-- (Event) On Window Hovered
-- (Event) On Window Moved
-- (Event) On Window Closed
+- **(Event)** On Window Hovered
+- **(Event)** On Window Moved
+- **(Event)** On Window Closed
 
 # ADDITINAL FUNCTIONS FOR GENERAL USAGE
 - Get Main Window Title	
