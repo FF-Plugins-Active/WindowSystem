@@ -126,6 +126,12 @@ bool AEachWindow::CreateNewWindow()
 		return false;
 	}
 
+	if (this->Manager->MAP_Windows.Contains(WindowTag))
+	{
+		UE_LOG(LogTemp, Error, TEXT("There is a window with that tag."));
+		return false;
+	}
+
 	// Styles
 	EWindowType WindowType = EWindowType::GameWindow;
 	switch (WindowTypeBp)
@@ -154,8 +160,8 @@ bool AEachWindow::CreateNewWindow()
 	TSharedPtr<SWindow> WidgetWindow = SNew(SWindow)
 		.bDragAnywhere(true)
 		.ClientSize(WindowSize)
-		.LayoutBorder(InBorder)
-		.UserResizeBorder(InBorder)
+		.LayoutBorder(BorderThick)
+		.UserResizeBorder(BorderThick)
 		.Title(InWindowTitle)
 		.ToolTipText(InToolTip)
 		.ForceVolatile(bForceVolatile)
@@ -204,7 +210,7 @@ bool AEachWindow::CreateNewWindow()
 	WidgetWindow->SetContent(ContentWidget->TakeWidget());
 	WidgetWindow->SetAllowFastUpdate(true);
 	WidgetWindow->SetMirrorWindow(bSetMirrorWindow);
-	WidgetWindow->MoveWindowTo(WindowPosition);
+	WidgetWindow->MoveWindowTo(StartPosition);
 	WidgetWindow->SetTag(WindowTag);
 	WidgetWindow->SetNativeWindowButtonsVisibility(bHasClose);
 	WidgetWindow->SetForegroundColor(TitleColor);

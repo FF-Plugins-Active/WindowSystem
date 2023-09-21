@@ -55,11 +55,14 @@ public:
 
 public:
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
-	AWindowManager* Manager = nullptr;
+	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = ""))
+	bool bIsTransparent = false;
 
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	UUserWidget* ContentWidget = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	AWindowManager* Manager = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	EWindowTypeBp WindowTypeBp = EWindowTypeBp::Normal;
@@ -78,9 +81,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "If you hide your taskbar, you have a chance to lost your window when it goes to backward. In that case, use \"Bring Window Front\" function with some delay.", ExposeOnSpawn = "true"))
 	bool bShowOnTaskBar = true;
-
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
-	bool bIsTransparent = false;
 
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bIsTopMost = false;
@@ -122,10 +122,10 @@ public:
 	FVector2D MaxSize = FVector2D::ZeroVector;
 	
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
-	FVector2D WindowPosition = FVector2D::ZeroVector;
+	FVector2D StartPosition = FVector2D::ZeroVector;
 	
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
-	FMargin InBorder = FMargin(5.f);
+	FMargin BorderThick = FMargin(5.f);
 
 public:
 

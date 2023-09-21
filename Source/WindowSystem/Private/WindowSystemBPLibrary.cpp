@@ -11,8 +11,7 @@ UWindowSystemBPLibrary::UWindowSystemBPLibrary(const FObjectInitializer& ObjectI
 
 void UWindowSystemBPLibrary::SetMainWindowPosition(FVector2D InNewPosition)
 {
-	TSharedRef<SWindow> Window = GEngine->GameViewport->GetWindow().ToSharedRef();
-	Window.Get().MoveWindowTo(InNewPosition);
+	GEngine->GameViewport->GetWindow().ToSharedRef().Get().MoveWindowTo(InNewPosition);
 }
 
 FText UWindowSystemBPLibrary::GetMainWindowTitle()
