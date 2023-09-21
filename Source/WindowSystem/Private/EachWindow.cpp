@@ -2,34 +2,11 @@
 
 #include "EachWindow.h"
 
-#include "Slate/WidgetRenderer.h"		// Window widget content to texture 2D.
-
-THIRD_PARTY_INCLUDES_START
-THIRD_PARTY_INCLUDES_END
-
 // Sets default values.
 AEachWindow::AEachWindow()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-}
-
-// Called when the game starts or when spawned.
-void AEachWindow::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// If "Manager" is not valid, function will return false.
-	if (this->CreateNewWindow())
-	{
-		this->Manager->MAP_Windows.Add(WindowTag, this);
-	}
-
-	if (IsValid(this->Manager) && this->WindowPtr.IsValid())
-	{
-		Hover_Delegate = FTimerDelegate::CreateUObject(this, &AEachWindow::NotifyWindowHovered, true);
-		GEngine->GetCurrentPlayWorld()->GetTimerManager().SetTimer(Hover_Timer, Hover_Delegate, 0.03, true);
-	}
 }
 
 // Called every frame.
@@ -38,19 +15,59 @@ void AEachWindow::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+// Called when the game starts or when spawned.
+void AEachWindow::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// If "Manager" and "ContentWidget" are not valid, just destroy window actor and don't go any further.
+	if (!IsValid(this->Manager) || !IsValid(ContentWidget))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Window creation aborted because \"Manager\" and \"ContentWidget\" are not valid for: %s"), *FString(WindowTag.ToString()));
+		this->Destroy();
+		return;
+	}
+
+	// If there is a problem with window creation, actor class will be destroyed and won't go any further. 
+	if (!this->CreateNewWindow())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Window creation aborted because there is a problem in \"CreateNewWindow\" function for: %s"), *FString(WindowTag.ToString()));
+		this->Destroy();
+		return;
+	}
+
+	// Add created window actor class to the list.
+	this->Manager->MAP_Windows.Add(WindowTag, this);
+
+	// Start window hover detection.
+	Hover_Delegate = FTimerDelegate::CreateUObject(this, &AEachWindow::NotifyWindowHovered, false);
+	GEngine->GetCurrentPlayWorld()->GetTimerManager().SetTimer(Hover_Timer, Hover_Delegate, 0.03, true);
+}
+
 // Called when the game ends.
 void AEachWindow::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	this->Manager->OnWindowClosed(WindowTag);
+	if (IsValid(this->Manager))
+	{
+		this->Manager->OnWindowClosed(WindowTag);
+	}
 	
 	this->CloseWindowCallback();
-
+	
 	Super::EndPlay(EndPlayReason);
 }
 
 // Protected Functions.
 
 void AEachWindow::NotifyWindowClosed(const TSharedRef<SWindow>& Window)
+{
+	if (IsValid(this))
+	{
+		this->Destroy();
+	}
+}
+
+void AEachWindow::NotifyWindowMoved(const TSharedRef<SWindow>& Window)
 {
 	if (!IsValid(this))
 	{
@@ -62,12 +79,7 @@ void AEachWindow::NotifyWindowClosed(const TSharedRef<SWindow>& Window)
 		return;
 	}
 
-	this->Destroy();
-}
-
-void AEachWindow::NotifyWindowMoved(const TSharedRef<SWindow>& Window)
-{
-	if (!IsValid(this->Manager))
+	if (!this->WindowPtr.IsValid())
 	{
 		return;
 	}
@@ -77,6 +89,16 @@ void AEachWindow::NotifyWindowMoved(const TSharedRef<SWindow>& Window)
 
 void AEachWindow::NotifyWindowHovered(bool bUseDirectHover)
 {
+	if (!IsValid(this))
+	{
+		return;
+	}
+	
+	if (!IsValid(this->Manager))
+	{
+		return;
+	}
+	
 	if (!this->WindowPtr.IsValid())
 	{
 		return;
@@ -216,53 +238,27 @@ bool AEachWindow::CreateNewWindow()
 	return true;
 }
 
-bool AEachWindow::CloseWindowCallback()
+void AEachWindow::CloseWindowCallback()
 {
-	if (!IsValid(this->Manager))
-	{
-		return false;
-	}
-
-	if (!WindowPtr.IsValid())
-	{
-		return false;
-	}
-
-	if (!this->Manager->MAP_Windows.Contains(WindowTag))
-	{
-		return false;
-	}
-
 	if (IsValid(ContentWidget))
 	{
 		ContentWidget->ReleaseSlateResources(true);
 	}
+	
+	if (WindowPtr.IsValid())
+	{
+		WindowPtr->HideWindow();
+		WindowPtr->RequestDestroyWindow();
+		WindowPtr.Reset();
+	}
 
-	WindowPtr->HideWindow();
-	WindowPtr->RequestDestroyWindow();
-	WindowPtr.Reset();
-
-	this->Manager->MAP_Windows.Remove(WindowTag);
-
-	return true;
+	if (IsValid(this->Manager) && this->Manager->MAP_Windows.Contains(WindowTag))
+	{
+		this->Manager->MAP_Windows.Remove(WindowTag);
+	}
 }
 
 // UFUNCTIONS.
-
-bool AEachWindow::CloseWindow()
-{
-	if (!IsValid(this))
-	{
-		return false;
-	}
-
-	if (!IsValid(this->Manager))
-	{
-		return false;
-	}
-
-	return this->Destroy();
-}
 
 bool AEachWindow::SetFileDragDropSupport()
 {

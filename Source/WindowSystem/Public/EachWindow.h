@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 
+// Custom Includes.
+#include "WindowEnums.h"
 #include "WindowManager.h"
 
 #include "EachWindow.generated.h"
@@ -35,7 +37,7 @@ protected:
 	virtual bool CreateNewWindow();
 
 	// We use it to destroy contents of window.
-	virtual bool CloseWindowCallback();
+	virtual void CloseWindowCallback();
 
 	FTimerHandle Hover_Timer;
 
@@ -127,9 +129,6 @@ public:
 
 public:
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Close Window", Keywords = "close, window"), Category = "Window System|Constructs")
-	virtual bool CloseWindow();
-
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set File Drag Drop Support", Keywords = "set, file, drag, drop, support, child, window, windows"), Category = "Window System|Set")
 	virtual bool SetFileDragDropSupport();
 
@@ -174,4 +173,5 @@ public:
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Window Title", Keywords = "get, window, title"), Category = "Window System|Get")
 	virtual bool GetWindowTitle(FText& OutWindowTitle);
+
 };

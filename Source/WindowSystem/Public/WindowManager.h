@@ -4,10 +4,31 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+
+// Custom Includes.
 #include "WindowSystemBPLibrary.h"
+
 #include "WindowManager.generated.h"
 
 class AEachWindow;
+
+// File drag drop system.
+USTRUCT(BlueprintType)
+struct WINDOWSYSTEM_API FDroppedFileStruct
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(BlueprintReadWrite)
+	FString FilePath;
+
+	UPROPERTY(BlueprintReadWrite)
+	FVector2D DropLocation;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsFolder = false;
+};
 
 UCLASS()
 class WINDOWSYSTEM_API AWindowManager : public AActor
@@ -152,7 +173,7 @@ public:
 	// Constructed message handler subclass for main window.
 	FDragDropHandler DragDropHandler;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, meta = (ToolTip = "We use this to record windows. DO NOT CHANGE THIS IN EDITOR ! USE ONLY WITH BLUEPRINTS !"))
+	UPROPERTY(BlueprintReadOnly)
 	TMap<FName, AEachWindow*> MAP_Windows;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ToolTip = "", ExposeOnSpawn = "true"))

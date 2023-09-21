@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "WindowManager.h"
-#include "WindowSystemBPLibrary.h"
 
-#include "EachWindow.h"
+// Custom Includes.
+#include "EachWindow.h"		// CloseAllWindows -> Destrow window actor.
 
 // Sets default values.
 AWindowManager::AWindowManager()
@@ -29,6 +29,8 @@ void AWindowManager::BeginPlay()
 void AWindowManager::EndPlay(EEndPlayReason::Type Reason)
 {
 	this->RemoveDragDropHandlerFromMV();
+
+	this->CloseAllWindows();
 	
 	Super::EndPlay(Reason);
 }
@@ -119,7 +121,10 @@ bool AWindowManager::CloseAllWindows()
 
 	for (int32 Index_Window = 0; Index_Window < ArrayWinObjects.Num(); Index_Window++)
 	{
-		ArrayWinObjects[Index_Window]->CloseWindow();
+		if (IsValid(ArrayWinObjects[Index_Window]))
+		{
+			ArrayWinObjects[Index_Window]->Destroy();
+		}
 	}
 
 	return true;
