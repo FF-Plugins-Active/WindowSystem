@@ -1,13 +1,13 @@
 # WindowSystem
 
-**PURPOSES AND FEATURES:**
+# PURPOSES AND FEATURES:
 - Runtime external window creation with UMG support.
 - Runtime **Save and Select File Dialogs**
 - File drag drop supports for main game window and external windows. It returns, content paths and content locations.
 - If operating system is Windows 11, created windows will have rounded corners.
 - Hover, window move and close detection events.
 
-**USAGE:**
+# USAGE:
 - Place **BP_Template_WinMan** to world. This is your window manager.
 	- It is in **Plugins/WindowSystem/Content/BPs**
 	- You can create a new one based on your needs.
@@ -32,11 +32,11 @@
 	
 - If you want to enable file drag drop feature for main window, just enable **bAllowMainWindow** boolean anytime.
 
-** DISCLAIMER**
+# DISCLAIMER
 - If you close your window accidentally, you will lost your widget as well. This can trigger errors and even crashes with other mechanics which depends on these widgets.
 - If you use **HideFromTaskBar** features and accidentally throw your window to the backward, you will have to bring it back with **Bring Window Front**
 
-**ADDITIONAL CONTROL FUNCTIONS FOR WINDOWS**
+# ADDITIONAL CONTROL FUNCTIONS FOR WINDOWS
 - Take Screenshot of Window
 
 - (Variable) WindowTag
@@ -65,13 +65,13 @@
 - (Event) On Window Moved
 - (Event) On Window Closed
 
-**ADDITINAL FUNCTIONS FOR GENERAL USAGE**
+# ADDITINAL FUNCTIONS FOR GENERAL USAGE
 - Get Main Window Title	
 - Set Main Window Title
 - Select File Dialog
 - Save File Dialog
 
-**WINDOW VARIABLES:**
+# WINDOW VARIABLES:
 - Is Top Most
 - Has Close (We recommend to set this false. Because if user close a runtime generated window, all contents and its referances will be gone. So, use it for if window's widget is manually created and does not important for mechanics.
 - Force Volatile
@@ -89,8 +89,8 @@
 - In Border (Border size between frame and its UMG content)
 - In Opacity (Initial opacity value of that window)
 
-**ON PURPOSED LIMITATION:**
+# ON PURPOSED LIMITATION:
 - Created windows won't appear on taskbar. Because even if we disable "close" button in titlebar, Windows Operating System does not disable it in taskbar and user can accidentally close it. So, we hide all window. If your project is fullscreen and a created window goes back, you need to use an UMG button and "Bring Window Front" function to bring it back. If your project is windowed, other windows will just goes one layer back. So you can bring it back with just hover.
 
-***PLATFORM:
+# PLATFORM:
 - This plugin created only for **Windows** operating system and **Unreal Engine 5.**
