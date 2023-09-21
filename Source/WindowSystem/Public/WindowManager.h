@@ -7,10 +7,28 @@
 #include "WindowSystemBPLibrary.h"
 #include "WindowManager.generated.h"
 
+class AEachWindow;
+
 UCLASS()
 class WINDOWSYSTEM_API AWindowManager : public AActor
 {
 	GENERATED_BODY()
+
+protected:
+
+	// Called when the game starts or when spawned.
+	virtual void BeginPlay() override;
+
+	// Called when the game ends or when destroyed.
+	virtual void EndPlay(EEndPlayReason::Type Reason) override;
+
+	virtual void AddDragDropHandlerToMV();
+
+	virtual void RemoveDragDropHandlerFromMV();
+
+	virtual void Read_Color_Callback();
+
+	FTimerHandle Timer_Color;
 
 public:
 
@@ -65,11 +83,12 @@ public:
 					DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
 					DwmSetWindowAttribute(Hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
 				}
-
+				
 				return true;
 
 			case WM_DROPFILES:
 
+				// If message sender window is main window and user not want to get files on it, return false.
 				if (WindowManager->bAllowMainWindow == false)
 				{
 					MainWindowHandle = reinterpret_cast<HWND>(GEngine->GameViewport->GetWindow()->GetNativeWindow()->GetOSWindowHandle());
@@ -122,73 +141,55 @@ public:
 	};
 
 public:
-	// Sets default values for this actor's properties
+	// Sets default values for this actor's properties.
 	AWindowManager();
+
+	// Called every frame.
+	virtual void Tick(float DeltaTime) override;
+
+public:
 
 	// Constructed message handler subclass for main window.
 	FDragDropHandler DragDropHandler;
 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, meta = (ToolTip = "We use this to record windows. DO NOT CHANGE THIS IN EDITOR ! USE ONLY WITH BLUEPRINTS !"))
+	TMap<FName, AEachWindow*> MAP_Windows;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	bool bReadScreenColorAtStart = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	bool bAllowMainWindow = true;
+
+public:
 
 	UFUNCTION(BlueprintImplementableEvent, meta = (Description = "Message came from WindowSystemBPLibrary.h \"OwnerActor->ProcessEvent(OwnerActor->FindFunction(FName(\"OnFileDrop\")), &OutArray);\""), Category = "Window System|Events")
 	void OnFileDrop(TArray<FDroppedFileStruct> const& OutMap);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
-	void OnWindowMoved(FName const& ClassName);
+	void OnWindowClosed(FName const& WindowTag);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
-	void OnWindowClosed(FName const& ClassName);
+	void OnWindowMoved(AEachWindow* const& Window);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
-	void OnWindowHovered(bool bIsHovered, UWindowObject* const& OutHovered);
+	void OnWindowHovered(AEachWindow* const& OutHovered);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
 	void OnCursorPosColor(FVector2D const& Position, FLinearColor const& Color);
-	
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Create New Window", Description = "If you disable \"Hide From Taskbar \", or enable \"Has Close\" there will be risk to remove widget accidently. So, use it with cautious.\nIf your window hide from taskbar, you need to use \"Bring Window Front\" function with some delay to see it.", Keywords = "create, new, window", AdvancedDisplay = "In_Window_Type, bForceVolatile, bPreserveAspectRatio, bSupportsMaximized, bSupportsMinimized, bSetMirrorWindow, bAllowFileDrop, bUseNativeBorder, InToolTip, TitleColor"), Category = "Window System|Constructs")
-	virtual bool CreateNewWindow(UWindowObject*& OutWindowObject, UPARAM(ref)UUserWidget*& InChildWidget, EWindowTypeBp In_Window_Type = EWindowTypeBp::GameWindow, bool bIsTopMost = false, bool bHasClose = false, bool bForceVolatile = false, bool bPreserveAspectRatio = false, bool bMinimized = false, bool bSupportsMaximized = false, bool bSupportsMinimized = false, bool bSetMirrorWindow = false, bool bShowOnTaskBar = false, bool bUseNativeBorder = false, FName InWindowTag = NAME_None, FText InWindowTitle = INVTEXT("None"), FText InToolTip = INVTEXT("None"), FLinearColor TitleColor = FLinearColor::White, FVector2D WindowSize = FVector2D::ZeroVector, FVector2D MinSize = FVector2D::ZeroVector, FVector2D MaxSize = FVector2D::ZeroVector, FVector2D WindowPosition = FVector2D::ZeroVector, FMargin InBorder = FMargin());
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Close Window", Keywords = "close, window"), Category = "Window System|Constructs")
-	virtual bool CloseWindow(UPARAM(ref)UWindowObject*& InWindowObject);
+public:
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Close All Windows", Keywords = "close, all, window"), Category = "Window System|Constructs")
 	virtual bool CloseAllWindows();
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Detect Hovered Window", Keywords = "detect, hovered, window"), Category = "Window System|Check")
-	virtual void DetectHoveredWindow();
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Start Color Reading", Keywords = "color, reading, window, start"), Category = "Window System|Constructs")
+	virtual bool Read_Color_Start();
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set File Drag Drop Support", Keywords = "set, file, drag, drop, support, child, window, windows"), Category = "Window System|Set")
-	virtual bool SetFileDragDropSupport(UPARAM(ref)UWindowObject*& InWindowObject);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Stop Color Reading", Keywords = "color, reading, window, stop"), Category = "Window System|Constructs")
+	virtual bool Read_Color_Stop();
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, meta=(ToolTip = "We use this to record windows. DO NOT CHANGE THIS IN EDITOR ! USE ONLY WITH BLUEPRINTS !"))
-	TMap<FName, UWindowObject*> MAP_Windows;
-
-	UPROPERTY(BlueprintReadWrite)
-	bool bReadScreenColor = false;
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	// Called when the game ends or when destroyed
-	virtual void EndPlay(EEndPlayReason::Type Reason) override;
-
-	// Window Movement Delegate
-	void NotifyWindowMoved(const TSharedRef<SWindow>& Window);
-
-	// Window Close Delegate
-	void NotifyWindowClosed(const TSharedRef<SWindow>& Window);
-
-	void ReadScreenColor();
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-	bool bAllowMainWindow = true;
-
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Add Drag Drop Handler To Main Window", Description = "It adds File Drag Drop message handler to main window. It is necessary to use if there another file drag drop supported window. Because they are child of this window.", Keywords = "add, main, window, viewport, handler"), Category = "Window System|Set")
-	virtual void AddDragDropHandlerToMV();
-
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Remove Drag Drop Handler From Main Window", Keywords = "remove, main, window, viewport, handler"), Category = "Window System|Set")
-	virtual void RemoveDragDropHandlerFromMV();
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "Check Is Color Reading", Keywords = "color, reading, window, check"), Category = "Window System|Constructs")
+	virtual bool IsColorReading();
 
 };
