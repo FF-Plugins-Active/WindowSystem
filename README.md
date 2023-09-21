@@ -71,21 +71,46 @@
 
 # WINDOW VARIABLES:
 - Is Top Most
-- Has Close (We recommend to set this false. Because if user close a runtime generated window, all contents and its referances will be gone. So, use it for if window's widget is manually created and does not important for mechanics.
+
+- Has Close
+	- We recommend to set this false. Because if user close a runtime generated window, all contents and its referances will be gone. So, use it with cautious.
+
 - Force Volatile
-- Preserve Aspect Ratio (When user change size of that window, should window preserve it's aspect ratio or not)
-- Minimized (Should window initially minimized or not)
+
+- Preserve Aspect Ratio
+	- When user change size of that window, should window preserve it's aspect ratio or not.
+
+- Minimized
+	- Create window as minimized or not.
+
 - Supports Maximize
+
 - Supports Minimize
-- Set Mirror Window (True if the window is a mirror window for HMD content)
+
+- Set Mirror Window
+
 - In Window Tag (You should absolutely set this with a meaningful and unique tag without space. Because we use this to record and get windows)
-- In Window Title (Title will be visible on window's titlebar if you give a title. This is different than tag. It can be a sentence and more readable.)
-- In Tooltip (When user hovered that window, there will be additional information as tooltip.)
+
+- In Window Title
+	- If you give a title, it will be visible on window's title bar.
+	- It is different than WindowTag as variable aspect but you can use same value.
+	- You can use more readable values with it.
+
+- In Tooltip
+	- When user hovered that window, there will be additional information as tooltip.
+
 - Window Size
-- Minimum Size (Minimum acceptable size for that window.)
+
+- Minimum Size
+	- Minimum acceptable size for that window.
+
 - Window Position
-- In Border (Border size between frame and its UMG content)
-- In Opacity (Initial opacity value of that window)
+
+- Border Thick
+	- Thickness between frame and UMG content.
+
+- In Opacity
+	- Initial opacity value of that window.
 
 # PLATFORM:
 - This plugin created only for **Windows** operating system and **Unreal Engine 5.**
