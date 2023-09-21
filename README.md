@@ -22,7 +22,7 @@
 
 - All window control functions are virtual functions of spawned EachWindow class object.
 
-- You can access all created windows with **Manager->MAP_Windows** (FName, AEachWindow). If you know the tag of window which you want to control, you can access it from this map.
+- You can access all created windows with **Manager->MAP_Windows (FName, AEachWindow)**. If you know the tag of window which you want to control, you can access it from this map.
 
 - If you want to enable file drag drop feature for created window, you have two options.
 	- You can enable it when set enable **bIsFileDropEnabled** boolean on **Spawn Actor from Class**
