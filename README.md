@@ -87,8 +87,5 @@
 - In Border (Border size between frame and its UMG content)
 - In Opacity (Initial opacity value of that window)
 
-# ON PURPOSED LIMITATION:
-- Created windows won't appear on taskbar. Because even if we disable "close" button in titlebar, Windows Operating System does not disable it in taskbar and user can accidentally close it. So, we hide all window. If your project is fullscreen and a created window goes back, you need to use an UMG button and "Bring Window Front" function to bring it back. If your project is windowed, other windows will just goes one layer back. So you can bring it back with just hover.
-
 # PLATFORM:
 - This plugin created only for **Windows** operating system and **Unreal Engine 5.**
