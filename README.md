@@ -1,30 +1,77 @@
 # WindowSystem
 
-PURPOSE:
-- This plugin has two purpose.
-   - It creates an external windows in "runtime" with UMG support.
-   - It enabled file drag drop to main window and external windows.
+**PURPOSES AND FEATURES:**
+- Runtime external window creation with UMG support.
+- Runtime **Save and Select File Dialogs**
+- File drag drop supports for main game window and external windows. It returns, content paths and content locations.
+- If operating system is Windows 11, created windows will have rounded corners.
+- Hover, window move and close detection events.
 
-USAGE:
-- Place "BP_Template_WinMan" to world (it is in Plugins/WindowSystem Content/BPs)
-- Use "Get All Actors of Class -> Get Index 0 -> Create a variable for that (BP_Template_WinMan Object Referance)
- - We need this in only Event Begin Play and there will be only one actor with that class. So, Get All Actors of Class won't impact your project's performance.
- - We will use created variable as referance.
-- Add "Create New Window" node from BP_Template_WinMan Object Referance.
-- To enable file drag drop for main window, set true to "Allow Main Window" boolean on BP_Template_WinMan (Default is true and it exposed as instanced variable.)
-- To enable file drag drop for created windows, use Set File Drag Drop Support after window creation.
-- Drop operation will trigger an event as OnFileDrop. This event will give you file path, drop location on screen and dropped window's name. ***So, you need to implement your import mechanics with these informations.
+**USAGE:**
+- Place **BP_Template_WinMan** to world. This is your window manager.
+	- It is in **Plugins/WindowSystem/Content/BPs**
+	- You can create a new one based on your needs.
+	- It has to be only **one manager actor** in scene.
 
-FEATURES:
-- Created windows and main game window can support runtime file drag drop.
-- User can drop multiple files at once. It gives an array.
-- User can get drop location on screen. You can use it to calculate world location for importing and spawning 3D assets to specific location.
-- It records all generated windows in a "MAP_Windows" map variable. (Key = Window Tag / Value = Window Object). If you have access BP_Template_WinMan Object Referance, you can get your window object referance with only its tag.)
-- User can take screenshot of visible window or whole widget.
-- Implemented close function has ReleaseSlateResource function. So, you don't need to manually remove UMG before closing window.
-- If target platform is Windows 11, created windows will have rounded corners.
+- Create and construct your widget.
 
-WINDOW VARIABLES:
+- **Spawn Actor From Class** (use **EachWindow** class)
+
+- Connect your manager and widget to **Spawn Actor From Class**
+
+- Set your settings
+	- You have to give a unique tag (optionally meaningful) to your window.
+
+- All window control functions are virtual functions of spawned EachWindow class object.
+
+- You can access all created windows with **Manager->MAP_Windows** (FName, AEachWindow>. If you know the tag of window which you want to control, you can access it from this map.
+
+- If you want to enable file drag drop feature for created window, you have two options.
+	- You can enable it when set enable **bIsFileDropEnabled** boolean on **Spawn Actor from Class**
+	- You can enable it in the future with **Set File Drag Drop Support** function.
+	
+- If you want to enable file drag drop feature for main window, just enable **bAllowMainWindow** boolean anytime.
+
+** DISCLAIMER**
+- If you close your window accidentally, you will lost your widget as well. This can trigger errors and even crashes with other mechanics which depends on these widgets.
+- If you use **HideFromTaskBar** features and accidentally throw your window to the backward, you will have to bring it back with **Bring Window Front**
+
+**ADDITIONAL CONTROL FUNCTIONS FOR WINDOWS**
+- Take Screenshot of Window
+
+- (Variable) WindowTag
+- (Variable) ContentWidget (UMG Widget)
+
+- Set Window Opacity
+- Set Window State (Minimmized / Restored / Maximized)
+- Set Window Shape (Give new position and or size with an animation)
+- Set Window Position
+- Set Window Title
+
+- Get Window State (returns enums Minimized / Restored / Maximized)
+- Get Window Position (return screen position as FVector2D)
+- Get Window Title
+
+- Is Window Top Most
+- Bring Window Front
+
+- Toggle Top Most Option
+- Toggle Show On Task Bar
+- Toggle Opacity
+
+- Set File Drag Drop Support
+
+- (Event) On Window Hovered
+- (Event) On Window Moved
+- (Event) On Window Closed
+
+**ADDITINAL FUNCTIONS FOR GENERAL USAGE**
+- Get Main Window Title	
+- Set Main Window Title
+- Select File Dialog
+- Save File Dialog
+
+**WINDOW VARIABLES:**
 - Is Top Most
 - Has Close (We recommend to set this false. Because if user close a runtime generated window, all contents and its referances will be gone. So, use it for if window's widget is manually created and does not important for mechanics.
 - Force Volatile
@@ -42,37 +89,8 @@ WINDOW VARIABLES:
 - In Border (Border size between frame and its UMG content)
 - In Opacity (Initial opacity value of that window)
 
-ADDITIONAL FUNCTIONS (Static Functions. Should be called without Window Manager):
-- Take Screenshot of Widget
-- Take Screenshot of Window
-
-- Get Main Window Title
-
-- Get Window Tag
-- Get Window Title
-- Get Window Position (return screen position as FVector2D)
-- Get Window State (returns enums Minimized / Restored / Maximized)
-- Get Window Widget (return UUSerWidget)
-
-- Set Window Title
-- Set Window State (Minimmized / Restored / Maximized)
-- Set Window Shape (Give new position and or size with an animation)
-- Set Window Opacity
-
-- Is Window Top Most
-- Is Window Hovered
-- Bring Window Front
-
-ADDITIONAL FUNCTIONS (Virtual Function. Should be called with Window Manager Referance):
-- Set All Windows Opacities
-- Detect Hovered Window
-- Set File Drag Drop Support
-- Create New Window
-- Close Window
-- Close All Windows
-
-ON PURPOSED LIMITATION:
+**ON PURPOSED LIMITATION:**
 - Created windows won't appear on taskbar. Because even if we disable "close" button in titlebar, Windows Operating System does not disable it in taskbar and user can accidentally close it. So, we hide all window. If your project is fullscreen and a created window goes back, you need to use an UMG button and "Bring Window Front" function to bring it back. If your project is windowed, other windows will just goes one layer back. So you can bring it back with just hover.
 
 ***PLATFORM:
-- This plugin created only for Windows operating system and Unreal Engine 5. Other platforms such as Linux, Mac OS and Unreal Engine 4 won't be supported.
+- This plugin created only for **Windows** operating system and **Unreal Engine 5.**

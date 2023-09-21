@@ -11,22 +11,23 @@ THIRD_PARTY_INCLUDES_START
 #include "nuklear.h"
 THIRD_PARTY_INCLUDES_END
 
-#include "NuklearManager.generated.h"
+#include "EachWindowNuklear.generated.h"
 
 UCLASS()
-class WINDOWSYSTEM_API ANuklearManager : public AActor
+class WINDOWSYSTEM_API AEachWindowNuklear : public AActor
 {
 	GENERATED_BODY()
 	
-public:	
-	// Sets default values for this actor's properties
-	ANuklearManager();
-
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+public:	
+	// Sets default values for this actor's properties
+	AEachWindowNuklear();
+
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	nk_context Nuklear_Gui;
 };
