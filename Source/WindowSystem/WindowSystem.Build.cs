@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using UnrealBuildTool;
-
 public class WindowSystem : ModuleRules
 {
 	public WindowSystem(ReadOnlyTargetRules Target) : base(Target)
@@ -13,10 +12,12 @@ public class WindowSystem : ModuleRules
         if (UnrealTargetPlatform.Win64 == Target.Platform)
         {
 			// Nuklear
-            string Include_Nuklear = "../Source/WindowSystem/ThirdParty/nuklear";
-            PrivateIncludePaths.Add(Include_Nuklear);
+            string Path_Nuklear = "../Source/WindowSystem/ThirdParty/nuklear";
+            PrivateIncludePaths.Add(Path_Nuklear);
 
 			// Imgui (FUTURE)
+			string Path_Imgui = "../Source/WindowSystem/ThirdParty/imgui";
+            PrivateIncludePaths.Add(Path_Imgui);
         }
 
         PublicDependencyModuleNames.AddRange(
@@ -39,7 +40,6 @@ public class WindowSystem : ModuleRules
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
-		
 		
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]

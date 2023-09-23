@@ -9,15 +9,15 @@
 #include "WindowEnums.h"
 #include "WindowManager.h"
 
-#include "EachWindow.generated.h"
+#include "EachWindow_SWindow.generated.h"
 
 UCLASS()
-class WINDOWSYSTEM_API AEachWindow : public AActor
+class WINDOWSYSTEM_API AEachWindow_SWindow : public AActor
 {
 	GENERATED_BODY()
 	
 protected:
-	
+
 	// Called when the game starts or when spawned.
 	virtual void BeginPlay() override;
 
@@ -43,10 +43,10 @@ protected:
 
 	FTimerDelegate Hover_Delegate;
 
-public:	
-	
+public:
+
 	// Sets default values for this actor's properties.
-	AEachWindow();
+	AEachWindow_SWindow();
 
 	// Called every frame.
 	virtual void Tick(float DeltaTime) override;
@@ -90,7 +90,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bForceVolatile = true;
-	
+
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bPreserveAspectRatio = false;
 
@@ -108,22 +108,22 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bUseNativeBorder = false;
-	
+
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FLinearColor TitleColor = FLinearColor::White;
-	
+
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FVector2D WindowSize = FVector2D::ZeroVector;
-	
+
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FVector2D MinSize = FVector2D::ZeroVector;
-	
+
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FVector2D MaxSize = FVector2D::ZeroVector;
-	
+
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FVector2D StartPosition = FVector2D::ZeroVector;
-	
+
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FMargin BorderThick = FMargin(5.f);
 

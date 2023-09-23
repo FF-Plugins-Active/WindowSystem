@@ -10,7 +10,7 @@
 
 #include "WindowManager.generated.h"
 
-class AEachWindow;
+class AEachWindow_SWindow;
 
 // File drag drop system.
 USTRUCT(BlueprintType)
@@ -174,7 +174,7 @@ public:
 	FDragDropHandler DragDropHandler;
 
 	UPROPERTY(BlueprintReadOnly)
-	TMap<FName, AEachWindow*> MAP_Windows;
+	TMap<FName, AEachWindow_SWindow*> MAP_Windows;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bReadScreenColorAtStart = false;
@@ -191,10 +191,10 @@ public:
 	void OnWindowClosed(FName const& WindowTag);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
-	void OnWindowMoved(AEachWindow* const& Window);
+	void OnWindowMoved(AEachWindow_SWindow* const& Window);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
-	void OnWindowHovered(AEachWindow* const& OutHovered);
+	void OnWindowHovered(AEachWindow_SWindow* const& OutHovered);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
 	void OnCursorPosColor(FVector2D const& Position, FLinearColor const& Color);

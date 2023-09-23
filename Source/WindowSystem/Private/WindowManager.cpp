@@ -3,7 +3,7 @@
 #include "WindowManager.h"
 
 // Custom Includes.
-#include "EachWindow.h"		// CloseAllWindows -> Destrow window actor.
+#include "EachWindow_SWindow.h"		// CloseAllWindows -> Destrow window actor.
 
 // Sets default values.
 AWindowManager::AWindowManager()
@@ -116,7 +116,7 @@ bool AWindowManager::CloseAllWindows()
 		return false;
 	}
 
-	UPARAM(ref)TArray<AEachWindow*> ArrayWinObjects;
+	UPARAM(ref)TArray<AEachWindow_SWindow*> ArrayWinObjects;
 	this->MAP_Windows.GenerateValueArray(ArrayWinObjects);
 
 	for (int32 Index_Window = 0; Index_Window < ArrayWinObjects.Num(); Index_Window++)

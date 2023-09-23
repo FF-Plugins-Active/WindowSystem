@@ -1,22 +1,22 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "EachWindow.h"
+#include "EachWindow_SWindow.h"
 
 // Sets default values.
-AEachWindow::AEachWindow()
+AEachWindow_SWindow::AEachWindow_SWindow()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
 // Called every frame.
-void AEachWindow::Tick(float DeltaTime)
+void AEachWindow_SWindow::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
 
 // Called when the game starts or when spawned.
-void AEachWindow::BeginPlay()
+void AEachWindow_SWindow::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -40,26 +40,26 @@ void AEachWindow::BeginPlay()
 	this->Manager->MAP_Windows.Add(WindowTag, this);
 
 	// Start window hover detection.
-	Hover_Delegate = FTimerDelegate::CreateUObject(this, &AEachWindow::NotifyWindowHovered, false);
+	Hover_Delegate = FTimerDelegate::CreateUObject(this, &AEachWindow_SWindow::NotifyWindowHovered, false);
 	GEngine->GetCurrentPlayWorld()->GetTimerManager().SetTimer(Hover_Timer, Hover_Delegate, 0.03, true);
 }
 
 // Called when the game ends.
-void AEachWindow::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void AEachWindow_SWindow::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (IsValid(this->Manager))
 	{
 		this->Manager->OnWindowClosed(WindowTag);
 	}
-	
+
 	this->CloseWindowCallback();
-	
+
 	Super::EndPlay(EndPlayReason);
 }
 
 // Protected Functions.
 
-void AEachWindow::NotifyWindowClosed(const TSharedRef<SWindow>& Window)
+void AEachWindow_SWindow::NotifyWindowClosed(const TSharedRef<SWindow>& Window)
 {
 	if (IsValid(this))
 	{
@@ -67,13 +67,13 @@ void AEachWindow::NotifyWindowClosed(const TSharedRef<SWindow>& Window)
 	}
 }
 
-void AEachWindow::NotifyWindowMoved(const TSharedRef<SWindow>& Window)
+void AEachWindow_SWindow::NotifyWindowMoved(const TSharedRef<SWindow>& Window)
 {
 	if (!IsValid(this))
 	{
 		return;
 	}
-	
+
 	if (!IsValid(this->Manager))
 	{
 		return;
@@ -87,18 +87,18 @@ void AEachWindow::NotifyWindowMoved(const TSharedRef<SWindow>& Window)
 	this->Manager->OnWindowMoved(this);
 }
 
-void AEachWindow::NotifyWindowHovered(bool bUseDirectHover)
+void AEachWindow_SWindow::NotifyWindowHovered(bool bUseDirectHover)
 {
 	if (!IsValid(this))
 	{
 		return;
 	}
-	
+
 	if (!IsValid(this->Manager))
 	{
 		return;
 	}
-	
+
 	if (!this->WindowPtr.IsValid())
 	{
 		return;
@@ -112,7 +112,7 @@ void AEachWindow::NotifyWindowHovered(bool bUseDirectHover)
 	this->Manager->OnWindowHovered(this);
 }
 
-bool AEachWindow::CreateNewWindow()
+bool AEachWindow_SWindow::CreateNewWindow()
 {
 	if (!IsValid(this->Manager))
 	{
@@ -215,8 +215,8 @@ bool AEachWindow::CreateNewWindow()
 	WidgetWindow->SetNativeWindowButtonsVisibility(bHasClose);
 	WidgetWindow->SetForegroundColor(TitleColor);
 	WidgetWindow->SetSizeLimits(SizeLimits);
-	WidgetWindow->SetOnWindowMoved(FOnWindowClosed::CreateUObject(this, &AEachWindow::NotifyWindowMoved));
-	WidgetWindow->SetOnWindowClosed(FOnWindowClosed::CreateUObject(this, &AEachWindow::NotifyWindowClosed));
+	WidgetWindow->SetOnWindowMoved(FOnWindowClosed::CreateUObject(this, &AEachWindow_SWindow::NotifyWindowMoved));
+	WidgetWindow->SetOnWindowClosed(FOnWindowClosed::CreateUObject(this, &AEachWindow_SWindow::NotifyWindowClosed));
 
 	// Add created window to Slate.
 	FSlateApplication::Get().AddWindow(WidgetWindow.ToSharedRef(), true);
@@ -244,13 +244,13 @@ bool AEachWindow::CreateNewWindow()
 	return true;
 }
 
-void AEachWindow::CloseWindowCallback()
+void AEachWindow_SWindow::CloseWindowCallback()
 {
 	if (IsValid(ContentWidget))
 	{
 		ContentWidget->ReleaseSlateResources(true);
 	}
-	
+
 	if (WindowPtr.IsValid())
 	{
 		WindowPtr->HideWindow();
@@ -266,7 +266,7 @@ void AEachWindow::CloseWindowCallback()
 
 // UFUNCTIONS.
 
-bool AEachWindow::SetFileDragDropSupport()
+bool AEachWindow_SWindow::SetFileDragDropSupport()
 {
 	if (!WindowPtr.IsValid())
 	{
@@ -286,14 +286,14 @@ bool AEachWindow::SetFileDragDropSupport()
 	return true;
 }
 
-bool AEachWindow::TakeSSWindow(UTextureRenderTarget2D*& OutTextureRenderTarget2D)
+bool AEachWindow_SWindow::TakeSSWindow(UTextureRenderTarget2D*& OutTextureRenderTarget2D)
 {
 	if (!WindowPtr.IsValid())
 	{
 		return false;
 	}
 
-	AEachWindow::BringWindowFront(false);
+	AEachWindow_SWindow::BringWindowFront(false);
 
 	FVector2D TargetWindowSize = WindowPtr->GetClientSizeInScreen();
 	UTextureRenderTarget2D* TextureTarget = FWidgetRenderer::CreateTargetFor(TargetWindowSize, TextureFilter::TF_Default, false);
@@ -310,7 +310,7 @@ bool AEachWindow::TakeSSWindow(UTextureRenderTarget2D*& OutTextureRenderTarget2D
 	return true;
 }
 
-bool AEachWindow::IsWindowTopMost(bool bUseNative)
+bool AEachWindow_SWindow::IsWindowTopMost(bool bUseNative)
 {
 	if (!WindowPtr.IsValid())
 	{
@@ -338,7 +338,7 @@ bool AEachWindow::IsWindowTopMost(bool bUseNative)
 	}
 }
 
-bool AEachWindow::BringWindowFront(bool bFlashWindow)
+bool AEachWindow_SWindow::BringWindowFront(bool bFlashWindow)
 {
 	if (WindowPtr.IsValid() == false)
 	{
@@ -355,7 +355,7 @@ bool AEachWindow::BringWindowFront(bool bFlashWindow)
 	return true;
 }
 
-bool AEachWindow::ToggleTopMostOption()
+bool AEachWindow_SWindow::ToggleTopMostOption()
 {
 	if (WindowPtr.IsValid() == false)
 	{
@@ -377,7 +377,7 @@ bool AEachWindow::ToggleTopMostOption()
 	}
 }
 
-bool AEachWindow::ToggleShowOnTaskBar(bool In_bShowOnTaskBar)
+bool AEachWindow_SWindow::ToggleShowOnTaskBar(bool In_bShowOnTaskBar)
 {
 	if (WindowPtr.IsValid() == false)
 	{
@@ -398,7 +398,7 @@ bool AEachWindow::ToggleShowOnTaskBar(bool In_bShowOnTaskBar)
 			SetWindowLongPtr(WidgetWindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
 		}
 
-		AEachWindow::BringWindowFront(true);
+		AEachWindow_SWindow::BringWindowFront(true);
 
 		this->bShowOnTaskBar = In_bShowOnTaskBar;
 	}
@@ -421,7 +421,7 @@ bool AEachWindow::ToggleShowOnTaskBar(bool In_bShowOnTaskBar)
 	return true;
 }
 
-bool AEachWindow::ToggleOpacity(bool bEnable, bool bPassDragDrop)
+bool AEachWindow_SWindow::ToggleOpacity(bool bEnable, bool bPassDragDrop)
 {
 	if (WindowPtr.IsValid() == false)
 	{
@@ -471,7 +471,7 @@ bool AEachWindow::ToggleOpacity(bool bEnable, bool bPassDragDrop)
 	return true;
 }
 
-bool AEachWindow::SetWindowOpacity(float NewOpacity)
+bool AEachWindow_SWindow::SetWindowOpacity(float NewOpacity)
 {
 	if (WindowPtr.IsValid() == false)
 	{
@@ -482,13 +482,13 @@ bool AEachWindow::SetWindowOpacity(float NewOpacity)
 	return true;
 }
 
-bool AEachWindow::SetWindowState(EWindowState OutWindowState)
+bool AEachWindow_SWindow::SetWindowState(EWindowState OutWindowState)
 {
 	if (!WindowPtr.IsValid())
 	{
 		return false;
 	}
-	
+
 	switch (OutWindowState)
 	{
 	case EWindowState::Minimized:
@@ -510,13 +510,13 @@ bool AEachWindow::SetWindowState(EWindowState OutWindowState)
 	return true;
 }
 
-bool AEachWindow::SetWindowShape(FMargin InExtend, float InDuration, float NewOpacity)
+bool AEachWindow_SWindow::SetWindowShape(FMargin InExtend, float InDuration, float NewOpacity)
 {
 	if (!WindowPtr.IsValid())
 	{
 		return false;
 	}
-	
+
 	FSlateRect CurrentShape = WindowPtr.ToSharedRef().Get().GetRectInScreen();
 
 	FSlateRect NewShape;
@@ -533,18 +533,18 @@ bool AEachWindow::SetWindowShape(FMargin InExtend, float InDuration, float NewOp
 	return true;
 }
 
-bool AEachWindow::SetWindowPosition(FVector2D InNewPosition)
+bool AEachWindow_SWindow::SetWindowPosition(FVector2D InNewPosition)
 {
 	if (!WindowPtr.IsValid())
 	{
 		return false;
 	}
-	
+
 	WindowPtr.Get()->MoveWindowTo(InNewPosition);
 	return true;
 }
 
-bool AEachWindow::SetWindowTitle(FText InNewTitle)
+bool AEachWindow_SWindow::SetWindowTitle(FText InNewTitle)
 {
 	if (!WindowPtr.IsValid())
 	{
@@ -555,7 +555,7 @@ bool AEachWindow::SetWindowTitle(FText InNewTitle)
 	return true;
 }
 
-bool AEachWindow::GetWindowState(EWindowState& OutWindowState)
+bool AEachWindow_SWindow::GetWindowState(EWindowState& OutWindowState)
 {
 	if (!WindowPtr.IsValid())
 	{
@@ -568,17 +568,17 @@ bool AEachWindow::GetWindowState(EWindowState& OutWindowState)
 	switch (WindowPlacement.showCmd)
 	{
 	case SW_NORMAL:
-		
+
 		OutWindowState = EWindowState::Restored;
 		return true;
 
 	case SW_MAXIMIZE:
-		
+
 		OutWindowState = EWindowState::Maximized;
 		return true;
 
 	case SW_SHOWMINIMIZED:
-		
+
 		OutWindowState = EWindowState::Minimized;
 		return true;
 	}
@@ -586,7 +586,7 @@ bool AEachWindow::GetWindowState(EWindowState& OutWindowState)
 	return false;
 }
 
-bool AEachWindow::GetWindowPosition(FVector2D& OutPosition)
+bool AEachWindow_SWindow::GetWindowPosition(FVector2D& OutPosition)
 {
 	if (!WindowPtr.IsValid())
 	{
@@ -597,14 +597,14 @@ bool AEachWindow::GetWindowPosition(FVector2D& OutPosition)
 	return true;
 }
 
-bool AEachWindow::GetWindowTitle(FText& OutWindowTitle)
+bool AEachWindow_SWindow::GetWindowTitle(FText& OutWindowTitle)
 {
 	if (!WindowPtr.IsValid())
 	{
 		OutWindowTitle = FText::FromString(TEXT(""));
 		return false;
 	}
-	
+
 	OutWindowTitle = WindowPtr.ToSharedRef().Get().GetTitle();
 	return true;
 }
