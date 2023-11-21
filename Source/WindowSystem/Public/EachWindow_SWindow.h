@@ -55,8 +55,11 @@ public:
 
 public:
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = ""))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = ""))
 	bool bIsTransparent = false;
+
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = ""))
+	bool bIsFileDropEnabled = false;
 
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	UUserWidget* ContentWidget = nullptr;
@@ -75,9 +78,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FText InToolTip = INVTEXT("None");
-
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
-	bool bIsFileDropEnabled = false;
 
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "If you hide your taskbar, you have a chance to lost your window when it goes to backward. In that case, use \"Bring Window Front\" function with some delay.", ExposeOnSpawn = "true"))
 	bool bShowOnTaskBar = true;

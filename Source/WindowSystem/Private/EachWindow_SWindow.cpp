@@ -236,11 +236,6 @@ bool AEachWindow_SWindow::CreateNewWindow()
 
 	this->WindowPtr = WidgetWindow;
 
-	if (bIsFileDropEnabled)
-	{
-		this->SetFileDragDropSupport();
-	}
-
 	return true;
 }
 
@@ -273,7 +268,7 @@ bool AEachWindow_SWindow::SetFileDragDropSupport()
 		return false;
 	}
 
-	if (bIsFileDropEnabled == true)
+	if (bIsFileDropEnabled)
 	{
 		return false;
 	}

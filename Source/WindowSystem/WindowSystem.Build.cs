@@ -11,13 +11,7 @@ public class WindowSystem : ModuleRules
 
         if (UnrealTargetPlatform.Win64 == Target.Platform)
         {
-			// Nuklear
-            string Path_Nuklear = "../Source/WindowSystem/ThirdParty/nuklear";
-            PrivateIncludePaths.Add(Path_Nuklear);
 
-			// Imgui (FUTURE)
-			string Path_Imgui = "../Source/WindowSystem/ThirdParty/imgui";
-            PrivateIncludePaths.Add(Path_Imgui);
         }
 
         PublicDependencyModuleNames.AddRange(

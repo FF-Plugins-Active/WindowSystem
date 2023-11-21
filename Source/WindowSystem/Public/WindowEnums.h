@@ -9,7 +9,7 @@ enum class EWindowState : uint8
 	Restored	UMETA(DisplayName = "Restored"),
 	Maximized	UMETA(DisplayName = "Maximized"),
 };
-
+ENUM_CLASS_FLAGS(EWindowState)
 
 UENUM(BlueprintType)
 enum class EWindowTypeBp : uint8
@@ -21,6 +21,4 @@ enum class EWindowTypeBp : uint8
 	CursorDecorator		UMETA(DisplayName = "CursorDecorator"),
 	GameWindow			UMETA(DisplayName = "GameWindow"),
 };
-
-ENUM_CLASS_FLAGS(EWindowState)
 ENUM_CLASS_FLAGS(EWindowTypeBp)
