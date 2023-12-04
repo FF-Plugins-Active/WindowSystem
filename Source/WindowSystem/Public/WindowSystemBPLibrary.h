@@ -77,4 +77,7 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Save File with Dialog", ToolTip = "Each extension group must have only one extension. \nIf that group has multiple variation, you should define one by one all of them if you need them. \nAlso you need to write them as \"*.extension\".", Keywords = "save, file, dialog, windows, explorer"), Category = "Window System|File Dialog")
 	static void SaveFileDialog(FDelegateSaveFile DelegateSaveFile, const FString InDialogName, const FString InOkLabel, const FString InDefaultPath, TMap<FString, FString> InExtensions, int32 DefaultExtensionIndex, bool bIsNormalizeOutputs = true);
 
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Widget Under Cursor", ToolTip = "", Keywords = "get, widget, under, cursor"), Category = "Window System")
+	static bool GetWidgetUnderCursor(FString& OutName);
+
 };

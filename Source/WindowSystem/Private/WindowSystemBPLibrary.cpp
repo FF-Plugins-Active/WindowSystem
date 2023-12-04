@@ -337,3 +337,29 @@ void UWindowSystemBPLibrary::SaveFileDialog(FDelegateSaveFile DelegateSaveFile, 
 		}
 	);
 }
+
+bool UWindowSystemBPLibrary::GetWidgetUnderCursor(FString& OutName)
+{
+	FSlateApplication& MySlateApplication = FSlateApplication::Get();
+
+	FWidgetPath WidgetsUnderCursor = MySlateApplication.LocateWindowUnderMouse(MySlateApplication.GetCursorPos(), MySlateApplication.GetInteractiveTopLevelWindows());
+
+	if (WidgetsUnderCursor.IsValid())
+	{
+		OutName += TEXT(" Count:") + FString::FromInt(WidgetsUnderCursor.Widgets.Num());
+
+		for (int32 Idx = 0; Idx < WidgetsUnderCursor.Widgets.Num(); ++Idx)
+		{
+			FArrangedWidget& Widget = WidgetsUnderCursor.Widgets[Idx];
+
+			OutName += TEXT(" ") + Widget.Widget->ToString();
+		}
+
+		return true;
+	}
+
+	else
+	{
+		return false;
+	}
+}
