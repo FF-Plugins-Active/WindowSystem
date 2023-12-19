@@ -15,9 +15,10 @@
 */ 
 #include "Widgets/SWindow.h"				// Create Window.
 #include "Widgets/SWidget.h"				// Add Widget to Window.
-#include "Slate/WidgetRenderer.h"			// Widget to Texture2D.
-#include "Runtime/UMG/Public/UMG.h"			// Widget to Texture2D.
 
+// UE Widget Includes.
+#include "Slate/WidgetRenderer.h"			// Take Screenshot of Window
+#include "Runtime/UMG/Public/UMG.h"         // Take Screenshot of Window
 /**
 * Shared Windows includes
 	* WindowSystemBPLibrary.cpp
