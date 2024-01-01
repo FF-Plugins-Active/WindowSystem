@@ -5,6 +5,10 @@
 // Custom Includes.
 #include "EachWindow_SWindow.h"		// CloseAllWindows -> Destrow window actor.
 
+#include "WinUser.h"
+
+void* Global_ActorPointer = nullptr;
+
 // Sets default values.
 AWindowManager::AWindowManager()
 {
@@ -19,7 +23,8 @@ void AWindowManager::BeginPlay()
 	
 	if (bReadScreenColorAtStart)
 	{
-		this->Read_Color_Start();
+		this->Read_Color();
+		Global_ActorPointer = (void*)this;
 	}
 
 	Super::BeginPlay();
@@ -32,6 +37,14 @@ void AWindowManager::EndPlay(EEndPlayReason::Type Reason)
 
 	this->CloseAllWindows();
 	
+	if (MouseHook_Color)
+	{
+		UnhookWindowsHookEx(MouseHook_Color);
+
+		Global_ActorPointer = nullptr;
+		free(Global_ActorPointer);
+	}
+
 	Super::EndPlay(Reason);
 }
 
@@ -69,44 +82,6 @@ void AWindowManager::RemoveDragDropHandlerFromMV()
 	}
 }
 
-void AWindowManager::Read_Color_Callback()
-{
-	if (GetKeyState(VK_LBUTTON) & 0x80)
-	{
-		HWND ScreenHandle = GetDesktopWindow();
-		if (!ScreenHandle)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Screen Handle"));
-			return;
-		}
-
-		HDC ScreenContext = GetDC(ScreenHandle);
-		if (!ScreenContext)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Screen Context"));
-			return;
-		}
-
-		POINT RawPos;
-		bool GotCursorPos = GetCursorPos(&RawPos);
-		if (!GotCursorPos)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Got Cursor Pos : %d"), GetLastError());
-			return;
-		}
-
-		COLORREF RawColor = GetPixel(ScreenContext, RawPos.x, RawPos.y);
-		FLinearColor PositionColor;
-		PositionColor.R = GetRValue(RawColor);
-		PositionColor.G = GetGValue(RawColor);
-		PositionColor.B = GetBValue(RawColor);
-		PositionColor.A = 255;
-
-		this->OnCursorPosColor(FVector2D(RawPos.x, RawPos.y), PositionColor);
-		ReleaseDC(ScreenHandle, ScreenContext);
-	}
-}
-
 // UFUNCTIONS.
 
 bool AWindowManager::CloseAllWindows()
@@ -130,32 +105,63 @@ bool AWindowManager::CloseAllWindows()
 	return true;
 }
 
-bool AWindowManager::Read_Color_Start()
+bool AWindowManager::Read_Color()
 {
-	if (Timer_Color.IsValid())
-	{
-		return false;
-	}
+	auto MouseHookCallback = [](int nCode, WPARAM wParam, LPARAM lParam)->LRESULT
+		{
+			if (wParam == WM_LBUTTONDOWN)
+			{
+				HWND ScreenHandle = GetDesktopWindow();
+				if (!ScreenHandle)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Screen Handle"));
+					return CallNextHookEx(0, nCode, wParam, lParam);
+				}
 
-	GEngine->GetCurrentPlayWorld()->GetTimerManager().SetTimer(Timer_Color, this, &AWindowManager::Read_Color_Callback, 0.03, true);
+				HDC ScreenContext = GetDC(ScreenHandle);
+				if (!ScreenContext)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Screen Context"));
+					return CallNextHookEx(0, nCode, wParam, lParam);
+				}
+
+				POINT RawPos;
+				bool GotCursorPos = GetCursorPos(&RawPos);
+				if (!GotCursorPos)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Got Cursor Pos : %d"), GetLastError());
+					return CallNextHookEx(0, nCode, wParam, lParam);
+				}
+
+				COLORREF RawColor = GetPixel(ScreenContext, RawPos.x, RawPos.y);
+				FLinearColor PositionColor;
+				PositionColor.R = GetRValue(RawColor);
+				PositionColor.G = GetGValue(RawColor);
+				PositionColor.B = GetBValue(RawColor);
+				PositionColor.A = 255;
+
+				if (!Global_ActorPointer)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Owner actor pointer is not valid !"));
+					return CallNextHookEx(0, nCode, wParam, lParam);
+				}
+
+				AWindowManager* Owner = Cast<AWindowManager>((AWindowManager*)Global_ActorPointer);
+
+				if (!Owner)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Owner actor is not valid !"));
+					return CallNextHookEx(0, nCode, wParam, lParam);
+				}
+
+				Owner->OnCursorPosColor(FVector2D(RawPos.x, RawPos.y), PositionColor);
+				ReleaseDC(ScreenHandle, ScreenContext);
+			}
+
+			return CallNextHookEx(0, nCode, wParam, lParam);
+		};
+	
+	MouseHook_Color = SetWindowsHookEx(WH_MOUSE_LL, MouseHookCallback, NULL, 0);
 
 	return true;
-}
-
-bool AWindowManager::Read_Color_Stop()
-{
-	if (!Timer_Color.IsValid())
-	{
-		return false;
-	}
-
-	GEngine->GetCurrentPlayWorld()->GetTimerManager().ClearTimer(Timer_Color);
-	Timer_Color.Invalidate();
-
-	return true;
-}
-
-bool AWindowManager::IsColorReading()
-{
-	return Timer_Color.IsValid();
 }

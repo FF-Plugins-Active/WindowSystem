@@ -47,9 +47,7 @@ protected:
 
 	virtual void RemoveDragDropHandlerFromMV();
 
-	virtual void Read_Color_Callback();
-
-	FTimerHandle Timer_Color;
+	HHOOK MouseHook_Color;
 
 public:
 
@@ -168,8 +166,6 @@ public:
 	// Called every frame.
 	virtual void Tick(float DeltaTime) override;
 
-public:
-
 	// Constructed message handler subclass for main window.
 	FDragDropHandler DragDropHandler;
 
@@ -199,18 +195,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
 	void OnCursorPosColor(FVector2D const& Position, FLinearColor const& Color);
 
-public:
-
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Close All Windows", Keywords = "close, all, window"), Category = "Window System|Constructs")
 	virtual bool CloseAllWindows();
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Start Color Reading", Keywords = "color, reading, window, start"), Category = "Window System|Constructs")
-	virtual bool Read_Color_Start();
-
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Stop Color Reading", Keywords = "color, reading, window, stop"), Category = "Window System|Constructs")
-	virtual bool Read_Color_Stop();
-
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "Check Is Color Reading", Keywords = "color, reading, window, check"), Category = "Window System|Constructs")
-	virtual bool IsColorReading();
+	virtual bool Read_Color();
 
 };
