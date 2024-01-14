@@ -5,7 +5,17 @@
 // Custom Includes.
 #include "EachWindow_SWindow.h"		// CloseAllWindows -> Destrow window actor.
 
+// UE Includes.
+#include "Slate/SceneViewport.h"
+#include "UnrealClient.h"
+#include "Engine/GameViewportClient.h"
+
+THIRD_PARTY_INCLUDES_START
+#include "Windows/AllowWindowsPlatformTypes.h"
+#include "Windows/WindowsHWrapper.h"
 #include "WinUser.h"
+#include "Windows/HideWindowsPlatformTypes.h"
+THIRD_PARTY_INCLUDES_END
 
 void* Global_ActorPointer = nullptr;
 
@@ -164,4 +174,9 @@ bool AWindowManager::Read_Color()
 	MouseHook_Color = SetWindowsHookEx(WH_MOUSE_LL, MouseHookCallback, NULL, 0);
 
 	return true;
+}
+
+void AWindowManager::ChangeViewportSize(FVector2D NewSize)
+{
+
 }

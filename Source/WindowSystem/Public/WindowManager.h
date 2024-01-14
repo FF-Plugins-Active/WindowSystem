@@ -24,7 +24,7 @@ public:
 	FString FilePath;
 
 	UPROPERTY(BlueprintReadWrite)
-	FVector2D DropLocation;
+	FVector2D DropLocation = FVector2D();
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsFolder = false;
@@ -201,4 +201,6 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Start Color Reading", Keywords = "color, reading, window, start"), Category = "Window System|Constructs")
 	virtual bool Read_Color();
 
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Change Viewport Size", Keywords = "color, reading, window, start"), Category = "Window System|Constructs")
+	virtual void ChangeViewportSize(FVector2D New_Size);
 };

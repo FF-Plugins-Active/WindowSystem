@@ -47,6 +47,11 @@ void AEachWindow_SWindow::BeginPlay()
 // Called when the game ends.
 void AEachWindow_SWindow::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (Hover_Timer.IsValid())
+	{
+		Hover_Timer.Invalidate();
+	}
+	
 	if (IsValid(this->Manager))
 	{
 		this->Manager->OnWindowClosed(WindowTag);
