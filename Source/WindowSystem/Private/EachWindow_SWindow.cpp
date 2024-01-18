@@ -224,7 +224,8 @@ bool AEachWindow_SWindow::CreateNewWindow()
 	WidgetWindow->SetOnWindowClosed(FOnWindowClosed::CreateUObject(this, &AEachWindow_SWindow::NotifyWindowClosed));
 
 	// Add created window to Slate.
-	FSlateApplication::Get().AddWindow(WidgetWindow.ToSharedRef(), true);
+	//FSlateApplication::Get().AddWindow(WidgetWindow.ToSharedRef(), true);
+	FSlateApplication::Get().AddWindowAsNativeChild(WidgetWindow.ToSharedRef(), GEngine->GameViewport->GetWindow().ToSharedRef());
 
 	// Hide Window from Taskbar.
 	HWND WidgetWindowHandle = reinterpret_cast<HWND>(WidgetWindow.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());

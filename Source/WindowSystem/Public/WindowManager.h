@@ -88,8 +88,13 @@ public:
 
 			switch (Message)
 			{
-			case WM_PAINT:
 
+			case WM_ERASEBKGND:
+
+				return 0;
+
+			case WM_PAINT:
+			{
 				if (BuildNumber >= 22000)
 				{
 					/*
@@ -102,9 +107,9 @@ public:
 					DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
 					DwmSetWindowAttribute(Hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
 				}
-				
-				return true;
 
+				return true;
+			}
 			case WM_DROPFILES:
 
 				// If message sender window is main window and user not want to get files on it, return false.
@@ -201,6 +206,9 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Start Color Reading", Keywords = "color, reading, window, start"), Category = "Window System|Constructs")
 	virtual bool Read_Color();
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Change Viewport Size", Keywords = "color, reading, window, start"), Category = "Window System|Constructs")
-	virtual void ChangeViewportSize(FVector2D New_Size);
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnLayoutChanged(TArray<FPlayerViews> const& Array_Views);
+
+	virtual void DetectLayoutChanges();
+
 };

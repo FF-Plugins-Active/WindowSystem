@@ -6,7 +6,7 @@
 UWindowSystemBPLibrary::UWindowSystemBPLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
-
+	
 }
 
 void UWindowSystemBPLibrary::SetMainWindowPosition(FVector2D InNewPosition)
@@ -338,28 +338,14 @@ void UWindowSystemBPLibrary::SaveFileDialog(FDelegateSaveFile DelegateSaveFile, 
 	);
 }
 
-bool UWindowSystemBPLibrary::GetWidgetUnderCursor(FString& OutName)
+bool UWindowSystemBPLibrary::PossesLocalPlayer(const int32 PlayerId, const int32 ControllerId)
 {
-	FSlateApplication& MySlateApplication = FSlateApplication::Get();
+	UCustomViewport* CustomViewport = Cast<UCustomViewport>(GEngine->GameViewport.Get());
 
-	FWidgetPath WidgetsUnderCursor = MySlateApplication.LocateWindowUnderMouse(MySlateApplication.GetCursorPos(), MySlateApplication.GetInteractiveTopLevelWindows());
-
-	if (WidgetsUnderCursor.IsValid())
-	{
-		OutName += TEXT(" Count:") + FString::FromInt(WidgetsUnderCursor.Widgets.Num());
-
-		for (int32 Idx = 0; Idx < WidgetsUnderCursor.Widgets.Num(); ++Idx)
-		{
-			FArrangedWidget& Widget = WidgetsUnderCursor.Widgets[Idx];
-
-			OutName += TEXT(" ") + Widget.Widget->ToString();
-		}
-
-		return true;
-	}
-
-	else
+	if (!CustomViewport)
 	{
 		return false;
 	}
+
+	return CustomViewport->PossesLocalPlayer(PlayerId, ControllerId);
 }

@@ -30,8 +30,9 @@ public class WindowSystem : ModuleRules
 				"Slate",
 				"SlateCore",
 				"UMG",
-				"RenderCore",
                 "InputCore",
+				"RHI",
+				"RenderCore",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

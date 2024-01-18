@@ -4,18 +4,7 @@
 
 // Custom Includes.
 #include "EachWindow_SWindow.h"		// CloseAllWindows -> Destrow window actor.
-
-// UE Includes.
-#include "Slate/SceneViewport.h"
-#include "UnrealClient.h"
-#include "Engine/GameViewportClient.h"
-
-THIRD_PARTY_INCLUDES_START
-#include "Windows/AllowWindowsPlatformTypes.h"
-#include "Windows/WindowsHWrapper.h"
-#include "WinUser.h"
-#include "Windows/HideWindowsPlatformTypes.h"
-THIRD_PARTY_INCLUDES_END
+#include "CustomViewport.h"
 
 void* Global_ActorPointer = nullptr;
 
@@ -37,6 +26,7 @@ void AWindowManager::BeginPlay()
 		Global_ActorPointer = (void*)this;
 	}
 
+	this->DetectLayoutChanges();
 	Super::BeginPlay();
 }
 
@@ -176,7 +166,14 @@ bool AWindowManager::Read_Color()
 	return true;
 }
 
-void AWindowManager::ChangeViewportSize(FVector2D NewSize)
+void AWindowManager::DetectLayoutChanges()
 {
+	UCustomViewport* CustomViewport = Cast<UCustomViewport>(GEngine->GameViewport.Get());
 
+	if (!CustomViewport)
+	{
+		return;
+	}
+
+	CustomViewport->DelegateNewLayout.AddUniqueDynamic(this, &ThisClass::OnLayoutChanged);
 }
