@@ -43,6 +43,8 @@ public:
     // This is customized version of UGameViewportClient::SSSwapControllers which works on Shipping Builds.
     virtual bool PossesLocalPlayer(const int32 PlayerId, const int32 ControllerId = -1);
 
+    virtual bool ChangePlayerViewSize(const int32 PlayerId, FVector2D NewRatio, FVector2D NewOrigin);
+
     FDelegateNewLayout DelegateNewLayout;
 
 protected:

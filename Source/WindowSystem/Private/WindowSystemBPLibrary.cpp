@@ -349,3 +349,15 @@ bool UWindowSystemBPLibrary::PossesLocalPlayer(const int32 PlayerId, const int32
 
 	return CustomViewport->PossesLocalPlayer(PlayerId, ControllerId);
 }
+
+bool UWindowSystemBPLibrary::ChangePlayerViewSize(const int32 PlayerId, FVector2D NewRatio, FVector2D NewOrigin)
+{
+	UCustomViewport* CustomViewport = Cast<UCustomViewport>(GEngine->GameViewport.Get());
+
+	if (!CustomViewport)
+	{
+		return false;
+	}
+
+	return CustomViewport->ChangePlayerViewSize(PlayerId, NewRatio, NewOrigin);
+}
