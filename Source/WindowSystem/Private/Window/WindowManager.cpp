@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "WindowManager.h"
+#include "Window/WindowManager.h"
 
 // Custom Includes.
-#include "EachWindow_SWindow.h"		// CloseAllWindows -> Destrow window actor.
-#include "CustomViewport.h"
+#include "Window/EachWindow_SWindow.h"		// CloseAllWindows -> Destrow window actor.
+#include "Viewport/CustomViewport.h"
 
 void* Global_ActorPointer = nullptr;
 

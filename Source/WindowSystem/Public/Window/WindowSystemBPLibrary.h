@@ -11,8 +11,7 @@
 #include "Runtime/UMG/Public/UMG.h"         // Take Screenshot of Window
 
 // Custom Includes.
-#include "CustomViewport.h"
-#include "CustomGameView.h"
+#include "Viewport/CustomViewport.h"
 
 THIRD_PARTY_INCLUDES_START
 #include "Windows/WindowsHWrapper.h"		// Necessary include.

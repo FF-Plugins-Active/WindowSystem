@@ -200,14 +200,14 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
 	void OnCursorPosColor(FVector2D const& Position, FLinearColor const& Color);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnLayoutChanged(TArray<FPlayerViews> const& Array_Views);
+
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Close All Windows", Keywords = "close, all, window"), Category = "Window System|Constructs")
 	virtual bool CloseAllWindows();
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Start Color Reading", Keywords = "color, reading, window, start"), Category = "Window System|Constructs")
 	virtual bool Read_Color();
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnLayoutChanged(TArray<FPlayerViews> const& Array_Views);
 
 	virtual void DetectLayoutChanges();
 

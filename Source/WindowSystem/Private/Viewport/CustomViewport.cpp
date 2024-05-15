@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "CustomViewport.h"
+#include "Viewport/CustomViewport.h"
 
 #include "Kismet/GameplayStatics.h"
 
@@ -39,7 +39,7 @@ void UCustomViewport::LayoutPlayers()
     FVector2D ViewportSize;
     this->GetViewportSize(ViewportSize);
 
-    UE_LOG(LogTemp, Warning, TEXT("Viewport Size Log = %s"), *FString(ViewportSize.ToString()));
+    //UE_LOG(LogTemp, Warning, TEXT("Viewport Size Log = %s"), *ViewportSize.ToString());
 
     if (PlayerList.Num() == 1)
     {
@@ -47,8 +47,6 @@ void UCustomViewport::LayoutPlayers()
         PlayerList[0]->Size.Y = 0.9;
         PlayerList[0]->Origin.X = 0.05;
         PlayerList[0]->Origin.Y = 0.05;
-        //PlayerList[0]->Origin.X = SplitscreenInfo[SplitType].PlayerData[0].OriginX;
-        //PlayerList[0]->Origin.Y = SplitscreenInfo[SplitType].PlayerData[0].OriginY;
         
         DelegateNewLayout.Broadcast(Array_Views);
 

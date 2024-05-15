@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "WindowSystemBPLibrary.h"
+#include "Window/WindowSystemBPLibrary.h"
 #include "WindowSystem.h"
 
 UWindowSystemBPLibrary::UWindowSystemBPLibrary(const FObjectInitializer& ObjectInitializer)
