@@ -53,8 +53,6 @@ public:
 
 	TSharedPtr<SWindow> WindowPtr;
 
-public:
-
 	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = ""))
 	bool bIsTransparent = false;
 
@@ -64,70 +62,74 @@ public:
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	UUserWidget* ContentWidget = nullptr;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	AWindowManager* Manager = nullptr;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	EWindowTypeBp WindowTypeBp = EWindowTypeBp::Normal;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FName WindowTag = NAME_None;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FText InWindowTitle = INVTEXT("None");
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FText InToolTip = INVTEXT("None");
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "If you hide your taskbar, you have a chance to lost your window when it goes to backward. In that case, use \"Bring Window Front\" function with some delay.", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "If you hide your taskbar, you have a chance to lost your window when it goes to backward. In that case, use \"Bring Window Front\" function with some delay.", ExposeOnSpawn = "true"))
 	bool bShowOnTaskBar = true;
 
 	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bIsTopMost = false;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "If you close your window, you will lost your widget and its contents.", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "If you close your window, you will lost your widget and its contents.", ExposeOnSpawn = "true"))
 	bool bHasClose = false;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bForceVolatile = true;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bPreserveAspectRatio = false;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bMinimized = false;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bSupportsMaximized = true;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bSupportsMinimized = true;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bSetMirrorWindow = true;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	bool bUseNativeBorder = false;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	bool bEnableHoverDetection = false;
+
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	float HoverDetectionTime = 0.03;
+
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FLinearColor TitleColor = FLinearColor::White;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FVector2D WindowSize = FVector2D::ZeroVector;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FVector2D MinSize = FVector2D::ZeroVector;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FVector2D MaxSize = FVector2D::ZeroVector;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FVector2D StartPosition = FVector2D::ZeroVector;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ToolTip = "", ExposeOnSpawn = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (ToolTip = "", ExposeOnSpawn = "true"))
 	FMargin BorderThick = FMargin(5.f);
-
-public:
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set File Drag Drop Support", Keywords = "set, file, drag, drop, support, child, window, windows"), Category = "Window System|Set")
 	virtual bool SetFileDragDropSupport();

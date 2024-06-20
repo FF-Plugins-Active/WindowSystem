@@ -7,6 +7,7 @@
 
 // Custom Includes.
 #include "WindowSystemBPLibrary.h"
+#include "DragDropHandler.h"
 
 #include "WindowManager.generated.h"
 
@@ -43,136 +44,34 @@ protected:
 	// Called when the game ends or when destroyed.
 	virtual void EndPlay(EEndPlayReason::Type Reason) override;
 
+protected:
+
+	// Constructed message handler subclass for main window.
+	FDragDropHandler DragDropHandler;
+
 	virtual void AddDragDropHandlerToMV();
 
 	virtual void RemoveDragDropHandlerFromMV();
 
+protected:
+
+	virtual void DetectLayoutChanges();
+
+protected:
+
 	HHOOK MouseHook_Color;
 
-public:
+	static inline void* ActorPointer;
 
-	// File Drag Drop Message Handler Subclass.
-	class FDragDropHandler : public IWindowsMessageHandler
-	{
-
-	public:
-
-		AActor* OwnerActor = nullptr;
-
-		bool ProcessMessage(HWND Hwnd, uint32 Message, WPARAM WParam, LPARAM LParam, int32& OutResult) override
-		{
-			// Drop System.
-			AWindowManager* WindowManager = (AWindowManager*)this->OwnerActor;
-			HWND MainWindowHandle;
-			HDROP DropInfo = (HDROP)WParam;
-
-			// File Path.
-			char* DroppedFile;
-			UINT DroppedFileCount = 0;
-
-			// Drop Location.
-			POINT DropLocation;
-
-			// Out Structure.
-			FDroppedFileStruct DropFileStruct;
-			TArray<FDroppedFileStruct> OutArray;
-
-			// Read Regedit To Get Windows Build Number.
-			HKEY hKey;
-			LONG Result = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0, KEY_READ, &hKey);
-			DWORD BufferSize;
-			RegQueryValueEx(hKey, L"CurrentBuildNumber", 0, nullptr, NULL, &BufferSize);
-			TCHAR* Buffer = (TCHAR*)malloc(BufferSize);
-			RegQueryValueEx(hKey, L"CurrentBuildNumber", 0, nullptr, reinterpret_cast<LPBYTE>(Buffer), &BufferSize);
-			int32 BuildNumber = FCString::Atoi(Buffer);
-
-			switch (Message)
-			{
-
-			case WM_ERASEBKGND:
-
-				return 0;
-
-			case WM_PAINT:
-			{
-				if (BuildNumber >= 22000)
-				{
-					/*
-						* Window Roundness Preference.
-						* DWMWCP_DEFAULT = 0
-						* DWMWCP_DONOTROUND = 1
-						* DWMWCP_ROUND = 2
-						* DWMWCP_ROUNDSMALL = 3
-					*/
-					DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
-					DwmSetWindowAttribute(Hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
-				}
-
-				return true;
-			}
-			case WM_DROPFILES:
-
-				// If message sender window is main window and user not want to get files on it, return false.
-				if (WindowManager->bAllowMainWindow == false)
-				{
-					MainWindowHandle = reinterpret_cast<HWND>(GEngine->GameViewport->GetWindow()->GetNativeWindow()->GetOSWindowHandle());
-					if (Hwnd == MainWindowHandle)
-					{
-						return false;
-					}
-				}
-
-				DragQueryPoint(DropInfo, &DropLocation);
-
-				DroppedFileCount = DragQueryFileA(DropInfo, 0xFFFFFFFF, NULL, NULL);
-				for (UINT FileIndex = 0; FileIndex < DroppedFileCount; FileIndex++)
-				{
-					UINT PathSize = DragQueryFileA(DropInfo, FileIndex, NULL, 0);
-					if (PathSize > 0)
-					{
-						DropFileStruct.DropLocation = FVector2D(DropLocation.x, DropLocation.y);
-
-						DroppedFile = (char*)malloc(size_t(PathSize));
-						DragQueryFileA(DropInfo, FileIndex, DroppedFile, PathSize + 1);
-
-						if (GetFileAttributesA(DroppedFile) != FILE_ATTRIBUTE_DIRECTORY)
-						{
-							DropFileStruct.FilePath = DroppedFile;
-							DropFileStruct.bIsFolder = false;
-						}
-
-						if (GetFileAttributesA(DroppedFile) == FILE_ATTRIBUTE_DIRECTORY)
-						{
-							DropFileStruct.FilePath = DroppedFile;
-							DropFileStruct.bIsFolder = true;
-						}
-
-						OutArray.Add(DropFileStruct);
-					}
-				}
-
-				WindowManager->OnFileDrop(OutArray);
-				OutArray.Empty();
-
-				DragFinish(DropInfo);
-
-				return true;
-
-			default:
-				return false;
-			}
-		}
-	};
+	static LRESULT MouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam);
 
 public:
+	
 	// Sets default values for this actor's properties.
 	AWindowManager();
 
 	// Called every frame.
 	virtual void Tick(float DeltaTime) override;
-
-	// Constructed message handler subclass for main window.
-	FDragDropHandler DragDropHandler;
 
 	UPROPERTY(BlueprintReadOnly)
 	TMap<FName, AEachWindow_SWindow*> MAP_Windows;
@@ -182,8 +81,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ToolTip = "It allows main window to support file drag drop.", ExposeOnSpawn = "true"))
 	bool bAllowMainWindow = true;
-
-public:
 
 	UFUNCTION(BlueprintImplementableEvent, meta = (Description = "Message came from WindowSystemBPLibrary.h \"OwnerActor->ProcessEvent(OwnerActor->FindFunction(FName(\"OnFileDrop\")), &OutArray);\""), Category = "Window System|Events")
 	void OnFileDrop(TArray<FDroppedFileStruct> const& OutMap);
@@ -203,12 +100,13 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnLayoutChanged(TArray<FPlayerViews> const& Array_Views);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Close All Windows", Keywords = "close, all, window"), Category = "Window System|Constructs")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Close All Windows", Keywords = "close, all, window"), Category = "Window System")
 	virtual bool CloseAllWindows();
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Start Color Reading", Keywords = "color, reading, window, start"), Category = "Window System|Constructs")
-	virtual bool Read_Color();
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Read Cursor Infos", ToolTip = "It will give cursor position and color under cursor.", Keywords = "cursor, mouse, color, pixel, position, location"), Category = "Window System")
+	virtual bool Read_Cursor_Infos();
 
-	virtual void DetectLayoutChanges();
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Read Cursor Infos", ToolTip = "It will give cursor position and color under cursor.", Keywords = "cursor, mouse, color, pixel, position, location"), Category = "Window System")
+	virtual bool ToggleWindowState(FName InTargetWindow);
 
 };

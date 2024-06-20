@@ -40,8 +40,12 @@ void AEachWindow_SWindow::BeginPlay()
 	this->Manager->MAP_Windows.Add(WindowTag, this);
 
 	// Start window hover detection.
-	Hover_Delegate = FTimerDelegate::CreateUObject(this, &AEachWindow_SWindow::NotifyWindowHovered, false);
-	GEngine->GetCurrentPlayWorld()->GetTimerManager().SetTimer(Hover_Timer, Hover_Delegate, 0.03, true);
+
+	if (this->bEnableHoverDetection)
+	{
+		Hover_Delegate = FTimerDelegate::CreateUObject(this, &AEachWindow_SWindow::NotifyWindowHovered, false);
+		GEngine->GetCurrentPlayWorld()->GetTimerManager().SetTimer(Hover_Timer, Hover_Delegate, this->HoverDetectionTime, true);
+	}
 }
 
 // Called when the game ends.
@@ -224,8 +228,10 @@ bool AEachWindow_SWindow::CreateNewWindow()
 	WidgetWindow->SetOnWindowClosed(FOnWindowClosed::CreateUObject(this, &AEachWindow_SWindow::NotifyWindowClosed));
 
 	// Add created window to Slate.
-	//FSlateApplication::Get().AddWindow(WidgetWindow.ToSharedRef(), true);
-	FSlateApplication::Get().AddWindowAsNativeChild(WidgetWindow.ToSharedRef(), GEngine->GameViewport->GetWindow().ToSharedRef());
+	FSlateApplication::Get().AddWindow(WidgetWindow.ToSharedRef(), true);
+
+	// If we use this and hide window from taskbar, minimized window will still be visible at left corner as small form.
+	//FSlateApplication::Get().AddWindowAsNativeChild(WidgetWindow.ToSharedRef(), GEngine->GameViewport->GetWindow().ToSharedRef());
 
 	// Hide Window from Taskbar.
 	HWND WidgetWindowHandle = reinterpret_cast<HWND>(WidgetWindow.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());

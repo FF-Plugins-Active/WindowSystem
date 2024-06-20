@@ -6,8 +6,6 @@
 #include "Window/EachWindow_SWindow.h"		// CloseAllWindows -> Destrow window actor.
 #include "Viewport/CustomViewport.h"
 
-void* Global_ActorPointer = nullptr;
-
 // Sets default values.
 AWindowManager::AWindowManager()
 {
@@ -22,8 +20,8 @@ void AWindowManager::BeginPlay()
 	
 	if (bReadScreenColorAtStart)
 	{
-		this->Read_Color();
-		Global_ActorPointer = (void*)this;
+		this->Read_Cursor_Infos();
+		ActorPointer = (void*)this;
 	}
 
 	this->DetectLayoutChanges();
@@ -41,8 +39,8 @@ void AWindowManager::EndPlay(EEndPlayReason::Type Reason)
 	{
 		UnhookWindowsHookEx(MouseHook_Color);
 
-		Global_ActorPointer = nullptr;
-		free(Global_ActorPointer);
+		ActorPointer = nullptr;
+		free(ActorPointer);
 	}
 
 	Super::EndPlay(Reason);
@@ -82,6 +80,60 @@ void AWindowManager::RemoveDragDropHandlerFromMV()
 	}
 }
 
+LRESULT AWindowManager::MouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	if (wParam == WM_LBUTTONDOWN)
+	{
+		if (!ActorPointer)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Owner actor pointer is not valid !"));
+			return CallNextHookEx(0, nCode, wParam, lParam);
+		}
+
+		AWindowManager* Owner = Cast<AWindowManager>((AWindowManager*)ActorPointer);
+
+		if (!Owner)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Owner actor is not valid !"));
+			return CallNextHookEx(0, nCode, wParam, lParam);
+		}
+
+		HWND ScreenHandle = GetDesktopWindow();
+		if (!ScreenHandle)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Screen Handle"));
+			return CallNextHookEx(0, nCode, wParam, lParam);
+		}
+
+		HDC ScreenContext = GetDC(ScreenHandle);
+		if (!ScreenContext)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Screen Context"));
+			return CallNextHookEx(0, nCode, wParam, lParam);
+		}
+
+		POINT RawPos;
+		bool GotCursorPos = GetCursorPos(&RawPos);
+		if (!GotCursorPos)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Got Cursor Pos : %d"), GetLastError());
+			return CallNextHookEx(0, nCode, wParam, lParam);
+		}
+
+		COLORREF RawColor = GetPixel(ScreenContext, RawPos.x, RawPos.y);
+		FLinearColor PositionColor;
+		PositionColor.R = GetRValue(RawColor);
+		PositionColor.G = GetGValue(RawColor);
+		PositionColor.B = GetBValue(RawColor);
+		PositionColor.A = 255;
+
+		Owner->OnCursorPosColor(FVector2D(RawPos.x, RawPos.y), PositionColor);
+		ReleaseDC(ScreenHandle, ScreenContext);
+	}
+
+	return CallNextHookEx(0, nCode, wParam, lParam);
+}
+
 // UFUNCTIONS.
 
 bool AWindowManager::CloseAllWindows()
@@ -105,63 +157,9 @@ bool AWindowManager::CloseAllWindows()
 	return true;
 }
 
-bool AWindowManager::Read_Color()
+bool AWindowManager::Read_Cursor_Infos()
 {
-	auto MouseHookCallback = [](int nCode, WPARAM wParam, LPARAM lParam)->LRESULT
-		{
-			if (wParam == WM_LBUTTONDOWN)
-			{
-				HWND ScreenHandle = GetDesktopWindow();
-				if (!ScreenHandle)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Screen Handle"));
-					return CallNextHookEx(0, nCode, wParam, lParam);
-				}
-
-				HDC ScreenContext = GetDC(ScreenHandle);
-				if (!ScreenContext)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Screen Context"));
-					return CallNextHookEx(0, nCode, wParam, lParam);
-				}
-
-				POINT RawPos;
-				bool GotCursorPos = GetCursorPos(&RawPos);
-				if (!GotCursorPos)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Got Cursor Pos : %d"), GetLastError());
-					return CallNextHookEx(0, nCode, wParam, lParam);
-				}
-
-				COLORREF RawColor = GetPixel(ScreenContext, RawPos.x, RawPos.y);
-				FLinearColor PositionColor;
-				PositionColor.R = GetRValue(RawColor);
-				PositionColor.G = GetGValue(RawColor);
-				PositionColor.B = GetBValue(RawColor);
-				PositionColor.A = 255;
-
-				if (!Global_ActorPointer)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Owner actor pointer is not valid !"));
-					return CallNextHookEx(0, nCode, wParam, lParam);
-				}
-
-				AWindowManager* Owner = Cast<AWindowManager>((AWindowManager*)Global_ActorPointer);
-
-				if (!Owner)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Read Screen Color -> Error -> Owner actor is not valid !"));
-					return CallNextHookEx(0, nCode, wParam, lParam);
-				}
-
-				Owner->OnCursorPosColor(FVector2D(RawPos.x, RawPos.y), PositionColor);
-				ReleaseDC(ScreenHandle, ScreenContext);
-			}
-
-			return CallNextHookEx(0, nCode, wParam, lParam);
-		};
-	
-	MouseHook_Color = SetWindowsHookEx(WH_MOUSE_LL, MouseHookCallback, NULL, 0);
+	MouseHook_Color = SetWindowsHookEx(WH_MOUSE_LL, AWindowManager::MouseHookCallback, NULL, 0);
 
 	return true;
 }
@@ -176,4 +174,73 @@ void AWindowManager::DetectLayoutChanges()
 	}
 
 	CustomViewport->DelegateNewLayout.AddUniqueDynamic(this, &ThisClass::OnLayoutChanged);
+}
+
+bool AWindowManager::ToggleWindowState(FName InTargetWindow)
+{
+	if (InTargetWindow.IsNone())
+	{
+		return false;
+	}
+
+	if (!InTargetWindow.ToString().IsEmpty())
+	{
+		return false;
+	}
+
+	AEachWindow_SWindow* TargetWindow = *this->MAP_Windows.Find(InTargetWindow);
+
+	if (!TargetWindow)
+	{
+		return false;
+	}
+	
+	EWindowState WindowState = EWindowState::Restored;
+	if (!TargetWindow->GetWindowState(WindowState))
+	{
+		return false;
+	}
+
+	switch (WindowState)
+	{
+	case EWindowState::Minimized:
+
+		TargetWindow->SetWindowState(EWindowState::Restored);
+		TargetWindow->BringWindowFront(true);
+		return true;
+
+	case EWindowState::Restored:
+
+		if (TargetWindow->IsWindowTopMost())
+		{
+			TargetWindow->SetWindowState(EWindowState::Minimized);
+			return true;
+		}
+
+		else
+		{
+			TargetWindow->BringWindowFront(true);
+			return true;
+		}
+
+	case EWindowState::Maximized:
+		
+		if (TargetWindow->IsWindowTopMost())
+		{
+			TargetWindow->SetWindowState(EWindowState::Minimized);
+			return true;
+		}
+
+		else
+		{
+			TargetWindow->BringWindowFront(true);
+			return true;
+		}
+
+	default:
+		
+		TargetWindow->SetWindowState(EWindowState::Restored);
+		TargetWindow->BringWindowFront(true);
+		return true;
+	}
 }
