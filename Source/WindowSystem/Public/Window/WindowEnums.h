@@ -5,6 +5,7 @@
 UENUM(BlueprintType)
 enum class EWindowState : uint8
 {
+	None		UMETA(DisplayName = "None"),
 	Minimized	UMETA(DisplayName = "Minimized"),
 	Restored	UMETA(DisplayName = "Restored"),
 	Maximized	UMETA(DisplayName = "Maximized"),

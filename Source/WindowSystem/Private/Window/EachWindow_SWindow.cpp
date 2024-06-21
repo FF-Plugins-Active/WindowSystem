@@ -2,6 +2,9 @@
 
 #include "Window/EachWindow_SWindow.h"
 
+// UE Includes.
+#include "Framework/Application/SWindowTitleBar.h"
+
 // Sets default values.
 AEachWindow_SWindow::AEachWindow_SWindow()
 {
@@ -184,6 +187,7 @@ bool AEachWindow_SWindow::CreateNewWindow()
 		.IsTopmostWindow(bIsTopMost)
 		.Type(WindowType)
 		.UseOSWindowBorder(bUseNativeBorder)
+		.AdjustInitialSizeAndPositionForDPIScale(true)
 		;
 
 	if (!WidgetWindow.IsValid())
@@ -495,6 +499,10 @@ bool AEachWindow_SWindow::SetWindowState(EWindowState OutWindowState)
 
 	switch (OutWindowState)
 	{
+
+	case EWindowState::None:
+		return false;
+
 	case EWindowState::Minimized:
 		WindowPtr->Minimize();
 		return true;
@@ -556,6 +564,7 @@ bool AEachWindow_SWindow::SetWindowTitle(FText InNewTitle)
 	}
 
 	WindowPtr.Get()->SetTitle(InNewTitle);
+
 	return true;
 }
 

@@ -63,7 +63,7 @@ protected:
 // CURSOR HOOK FOR POSITION AND COLOR
 protected:
 
-	HHOOK MouseHook_Color;
+	HHOOK MouseHook_Color = NULL;
 
 	static inline void* ActorPointer;
 
@@ -115,7 +115,7 @@ public:
 	virtual bool Read_Cursor_Infos();
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Toggle Window State", ToolTip = "", Keywords = "toggle, switch, window, state, minimize, restore, maximize"), Category = "Window System")
-	virtual bool ToggleWindowState(FName InTargetWindow, bool bBringFrontIfMiminized);
+	virtual bool ToggleWindowState(FName InTargetWindow, bool bFlashWindow);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Bring Front on Hover", ToolTip = "", Keywords = "hover, system, bring, window, front"), Category = "Window System")
 	virtual bool BringFrontOnHover(AEachWindow_SWindow* TargetWindow);

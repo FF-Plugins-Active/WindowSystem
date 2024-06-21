@@ -178,7 +178,7 @@ void AWindowManager::DetectLayoutChanges()
 	CustomViewport->DelegateNewLayout.AddUniqueDynamic(this, &ThisClass::OnLayoutChanged);
 }
 
-bool AWindowManager::ToggleWindowState(FName InTargetWindow, bool bBringFrontIfMiminized)
+bool AWindowManager::ToggleWindowState(FName InTargetWindow, bool bFlashWindow)
 {
 	if (InTargetWindow.IsNone())
 	{
@@ -197,58 +197,102 @@ bool AWindowManager::ToggleWindowState(FName InTargetWindow, bool bBringFrontIfM
 		return false;
 	}
 	
-	EWindowState WindowState = EWindowState::Restored;
+	EWindowState WindowState = EWindowState::None;
 	if (!TargetWindow->GetWindowState(WindowState))
 	{
 		return false;
 	}
 
+	TArray<AEachWindow_SWindow*> Array_Windows;
+	this->MAP_Windows.GenerateValueArray(Array_Windows);
+
 	switch (WindowState)
 	{
+
+	case EWindowState::None:
+		
+		return false;
+
 	case EWindowState::Minimized:
 
+		TargetWindow->SetWindowOpacity(1.f);
+		TargetWindow->ToggleOpacity(false, true);
+
 		TargetWindow->SetWindowState(EWindowState::Restored);
-		
-		if (bBringFrontIfMiminized)
+		TargetWindow->BringWindowFront(bFlashWindow);
+
+		for (AEachWindow_SWindow* Each_Window : Array_Windows)
 		{
-			TargetWindow->BringWindowFront(true);
+			EWindowState Each_Window_State = EWindowState::None;
+			Each_Window->GetWindowState(Each_Window_State);
+
+			if (Each_Window_State != EWindowState::Minimized)
+			{
+				Each_Window->BringWindowFront(false);
+			}
 		}
-		
+
 		return true;
 
 	case EWindowState::Restored:
 
+		TargetWindow->SetWindowOpacity(1.f);
+		TargetWindow->ToggleOpacity(false, true);
+
 		if (TargetWindow->IsWindowTopMost())
 		{
 			TargetWindow->SetWindowState(EWindowState::Minimized);
-			return true;
 		}
 
 		else
 		{
-			TargetWindow->BringWindowFront(true);
-			return true;
+			TargetWindow->BringWindowFront(bFlashWindow);
 		}
+
+		for (AEachWindow_SWindow* Each_Window : Array_Windows)
+		{
+			EWindowState Each_Window_State = EWindowState::None;
+			Each_Window->GetWindowState(Each_Window_State);
+
+			if (Each_Window_State != EWindowState::Minimized)
+			{
+				Each_Window->BringWindowFront(false);
+			}
+		}
+
+		return true;
 
 	case EWindowState::Maximized:
 		
+		TargetWindow->SetWindowOpacity(1.f);
+		TargetWindow->ToggleOpacity(false, true);
+
 		if (TargetWindow->IsWindowTopMost())
 		{
 			TargetWindow->SetWindowState(EWindowState::Minimized);
-			return true;
 		}
 
 		else
 		{
-			TargetWindow->BringWindowFront(true);
-			return true;
+			TargetWindow->BringWindowFront(bFlashWindow);
 		}
+
+		for (AEachWindow_SWindow* Each_Window : Array_Windows)
+		{
+			EWindowState Each_Window_State = EWindowState::None;
+			Each_Window->GetWindowState(Each_Window_State);
+
+			if (Each_Window_State != EWindowState::Minimized)
+			{
+				Each_Window->BringWindowFront(false);
+			}
+		}
+
+		return true;
 
 	default:
 		
-		TargetWindow->SetWindowState(EWindowState::Restored);
-		TargetWindow->BringWindowFront(true);
-		return true;
+		return false;
 	}
 }
 
@@ -275,6 +319,14 @@ bool AWindowManager::BringFrontOnHover(AEachWindow_SWindow* TargetWindow)
 
 	for (AEachWindow_SWindow* EachWindow : Array_Windows)
 	{
+		EWindowState WindowState = EWindowState::None;
+		EachWindow->GetWindowState(WindowState);
+
+		if (WindowState == EWindowState::Minimized)
+		{
+			continue;
+		}
+
 		EachWindow->ToggleOpacity(true, true);
 		EachWindow->SetWindowOpacity(0.5f);
 	}
