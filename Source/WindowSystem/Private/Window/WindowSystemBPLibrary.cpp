@@ -362,7 +362,7 @@ bool UWindowSystemBPLibrary::ChangePlayerViewSize(const int32 PlayerId, FVector2
 	return CustomViewport->ChangePlayerViewSize(PlayerId, NewRatio, NewOrigin);
 }
 
-bool UWindowSystemBPLibrary::ToggleWidgetState(UUserWidget* TargetWidget, ESlateVisibility OffMethod)
+bool UWindowSystemBPLibrary::ToggleWidgetState(UWidget* TargetWidget, ESlateVisibility OffMethod)
 {
 	if (!TargetWidget)
 	{

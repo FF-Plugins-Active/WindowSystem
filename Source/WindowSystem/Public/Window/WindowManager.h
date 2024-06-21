@@ -36,6 +36,7 @@ class WINDOWSYSTEM_API AWindowManager : public AActor
 {
 	GENERATED_BODY()
 
+// ACTOR STRUCTURE.
 protected:
 
 	// Called when the game starts or when spawned.
@@ -44,6 +45,7 @@ protected:
 	// Called when the game ends or when destroyed.
 	virtual void EndPlay(EEndPlayReason::Type Reason) override;
 
+// DRAG DROP SYSTEM.
 protected:
 
 	// Constructed message handler subclass for main window.
@@ -53,10 +55,12 @@ protected:
 
 	virtual void RemoveDragDropHandlerFromMV();
 
+// LAYOUT SYSTEM.
 protected:
 
 	virtual void DetectLayoutChanges();
 
+// CURSOR HOOK FOR POSITION AND COLOR
 protected:
 
 	HHOOK MouseHook_Color;
@@ -64,6 +68,10 @@ protected:
 	static inline void* ActorPointer;
 
 	static LRESULT MouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam);
+
+protected:
+
+	AEachWindow_SWindow* HoveredWindow = nullptr;
 
 public:
 	
@@ -106,7 +114,10 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Read Cursor Infos", ToolTip = "It will give cursor position and color under cursor.", Keywords = "cursor, mouse, color, pixel, position, location"), Category = "Window System")
 	virtual bool Read_Cursor_Infos();
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Read Cursor Infos", ToolTip = "It will give cursor position and color under cursor.", Keywords = "cursor, mouse, color, pixel, position, location"), Category = "Window System")
-	virtual bool ToggleWindowState(FName InTargetWindow);
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Toggle Window State", ToolTip = "", Keywords = "toggle, switch, window, state, minimize, restore, maximize"), Category = "Window System")
+	virtual bool ToggleWindowState(FName InTargetWindow, bool bBringFrontIfMiminized);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Bring Front on Hover", ToolTip = "", Keywords = "hover, system, bring, window, front"), Category = "Window System")
+	virtual bool BringFrontOnHover(AEachWindow_SWindow* TargetWindow);
 
 };

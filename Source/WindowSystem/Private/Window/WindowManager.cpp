@@ -31,6 +31,8 @@ void AWindowManager::BeginPlay()
 // Called when the game ends or when destroyed.
 void AWindowManager::EndPlay(EEndPlayReason::Type Reason)
 {
+	this->HoveredWindow = nullptr;
+
 	this->RemoveDragDropHandlerFromMV();
 
 	this->CloseAllWindows();
@@ -176,14 +178,14 @@ void AWindowManager::DetectLayoutChanges()
 	CustomViewport->DelegateNewLayout.AddUniqueDynamic(this, &ThisClass::OnLayoutChanged);
 }
 
-bool AWindowManager::ToggleWindowState(FName InTargetWindow)
+bool AWindowManager::ToggleWindowState(FName InTargetWindow, bool bBringFrontIfMiminized)
 {
 	if (InTargetWindow.IsNone())
 	{
 		return false;
 	}
 
-	if (!InTargetWindow.ToString().IsEmpty())
+	if (InTargetWindow.ToString().IsEmpty())
 	{
 		return false;
 	}
@@ -206,7 +208,12 @@ bool AWindowManager::ToggleWindowState(FName InTargetWindow)
 	case EWindowState::Minimized:
 
 		TargetWindow->SetWindowState(EWindowState::Restored);
-		TargetWindow->BringWindowFront(true);
+		
+		if (bBringFrontIfMiminized)
+		{
+			TargetWindow->BringWindowFront(true);
+		}
+		
 		return true;
 
 	case EWindowState::Restored:
@@ -243,4 +250,34 @@ bool AWindowManager::ToggleWindowState(FName InTargetWindow)
 		TargetWindow->BringWindowFront(true);
 		return true;
 	}
+}
+
+bool AWindowManager::BringFrontOnHover(AEachWindow_SWindow* TargetWindow)
+{
+	if (!TargetWindow)
+	{
+		return false;
+	}
+
+	if (this->HoveredWindow == TargetWindow)
+	{
+		return false;
+	}
+
+	TArray<AEachWindow_SWindow*> Array_Windows;
+	this->MAP_Windows.GenerateValueArray(Array_Windows);
+	Array_Windows.Remove(TargetWindow);
+
+	TargetWindow->SetWindowOpacity(1.f);
+	TargetWindow->ToggleOpacity(false, true);
+	
+	this->HoveredWindow = TargetWindow;
+
+	for (AEachWindow_SWindow* EachWindow : Array_Windows)
+	{
+		EachWindow->ToggleOpacity(true, true);
+		EachWindow->SetWindowOpacity(0.5f);
+	}
+
+	return true;
 }

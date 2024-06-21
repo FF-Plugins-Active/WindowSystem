@@ -435,12 +435,9 @@ bool AEachWindow_SWindow::ToggleOpacity(bool bEnable, bool bPassDragDrop)
 		return false;
 	}
 
-	if (bIsFileDropEnabled == true)
+	if (bIsFileDropEnabled == true && bPassDragDrop == false)
 	{
-		if (bPassDragDrop == false)
-		{
-			return false;
-		}
+		return false;
 	}
 
 	HWND WidgetWindowHandle = reinterpret_cast<HWND>(WindowPtr.ToSharedRef().Get().GetNativeWindow().ToSharedRef().Get().GetOSWindowHandle());
