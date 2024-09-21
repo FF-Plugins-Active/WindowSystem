@@ -148,24 +148,24 @@ bool AEachWindow_SWindow::CreateNewWindow()
 	EWindowType WindowType = EWindowType::GameWindow;
 	switch (WindowTypeBp)
 	{
-	case EWindowTypeBp::Normal:
-		WindowType = EWindowType::Normal;
-		break;
-	case EWindowTypeBp::Menu:
-		WindowType = EWindowType::Menu;
-		break;
-	case EWindowTypeBp::ToolTip:
-		WindowType = EWindowType::ToolTip;
-		break;
-	case EWindowTypeBp::Notification:
-		WindowType = EWindowType::Notification;
-		break;
-	case EWindowTypeBp::CursorDecorator:
-		WindowType = EWindowType::CursorDecorator;
-		break;
-	case EWindowTypeBp::GameWindow:
-		WindowType = EWindowType::GameWindow;
-		break;
+		case EWindowTypeBp::Normal:
+			WindowType = EWindowType::Normal;
+			break;
+		case EWindowTypeBp::Menu:
+			WindowType = EWindowType::Menu;
+			break;
+		case EWindowTypeBp::ToolTip:
+			WindowType = EWindowType::ToolTip;
+			break;
+		case EWindowTypeBp::Notification:
+			WindowType = EWindowType::Notification;
+			break;
+		case EWindowTypeBp::CursorDecorator:
+			WindowType = EWindowType::CursorDecorator;
+			break;
+		case EWindowTypeBp::GameWindow:
+			WindowType = EWindowType::GameWindow;
+			break;
 	}
 
 	// Blueprints exposed UObject should contain TSharedPtr NOT TSharedRef.

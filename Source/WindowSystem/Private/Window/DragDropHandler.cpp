@@ -8,10 +8,6 @@ bool FDragDropHandler::ProcessMessage(HWND Hwnd, uint32 Message, WPARAM WParam, 
 	HWND MainWindowHandle;
 	HDROP DropInfo = (HDROP)WParam;
 
-	// File Path.
-	char* DroppedFile;
-	UINT DroppedFileCount = 0;
-
 	// Drop Location.
 	POINT DropLocation;
 
@@ -31,76 +27,80 @@ bool FDragDropHandler::ProcessMessage(HWND Hwnd, uint32 Message, WPARAM WParam, 
 	switch (Message)
 	{
 
-	case WM_ERASEBKGND:
+		case WM_ERASEBKGND:
 
-		return 0;
+			return 0;
 
-	case WM_PAINT:
-	{
-		if (BuildNumber >= 22000)
+		case WM_PAINT:
 		{
-			/*
-				* Window Roundness Preference.
-				* DWMWCP_DEFAULT = 0
-				* DWMWCP_DONOTROUND = 1
-				* DWMWCP_ROUND = 2
-				* DWMWCP_ROUNDSMALL = 3
-			*/
-			DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
-			DwmSetWindowAttribute(Hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
-		}
-
-		return true;
-	}
-	case WM_DROPFILES:
-
-		// If message sender window is main window and user not want to get files on it, return false.
-		if (WindowManager->bAllowMainWindow == false)
-		{
-			MainWindowHandle = reinterpret_cast<HWND>(GEngine->GameViewport->GetWindow()->GetNativeWindow()->GetOSWindowHandle());
-			if (Hwnd == MainWindowHandle)
+			if (BuildNumber >= 22000)
 			{
-				return false;
+				/*
+					* Window Roundness Preference.
+					* DWMWCP_DEFAULT = 0
+					* DWMWCP_DONOTROUND = 1
+					* DWMWCP_ROUND = 2
+					* DWMWCP_ROUNDSMALL = 3
+				*/
+				DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
+				DwmSetWindowAttribute(Hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
 			}
+
+			return true;
 		}
+		
+		case WM_DROPFILES:
 
-		DragQueryPoint(DropInfo, &DropLocation);
-
-		DroppedFileCount = DragQueryFileA(DropInfo, 0xFFFFFFFF, NULL, NULL);
-		for (UINT FileIndex = 0; FileIndex < DroppedFileCount; FileIndex++)
-		{
-			UINT PathSize = DragQueryFileA(DropInfo, FileIndex, NULL, 0);
-			if (PathSize > 0)
+			// If message sender window is main window and user not want to get files on it, return false.
+			if (WindowManager->bAllowMainWindow == false)
 			{
-				DropFileStruct.DropLocation = FVector2D(DropLocation.x, DropLocation.y);
-
-				DroppedFile = (char*)malloc(size_t(PathSize));
-				DragQueryFileA(DropInfo, FileIndex, DroppedFile, PathSize + 1);
-
-				if (GetFileAttributesA(DroppedFile) != FILE_ATTRIBUTE_DIRECTORY)
+				MainWindowHandle = reinterpret_cast<HWND>(GEngine->GameViewport->GetWindow()->GetNativeWindow()->GetOSWindowHandle());
+				if (Hwnd == MainWindowHandle)
 				{
-					DropFileStruct.FilePath = DroppedFile;
-					DropFileStruct.bIsFolder = false;
+					return false;
 				}
-
-				if (GetFileAttributesA(DroppedFile) == FILE_ATTRIBUTE_DIRECTORY)
-				{
-					DropFileStruct.FilePath = DroppedFile;
-					DropFileStruct.bIsFolder = true;
-				}
-
-				OutArray.Add(DropFileStruct);
 			}
-		}
 
-		WindowManager->OnFileDrop(OutArray);
-		OutArray.Empty();
+			DragQueryPoint(DropInfo, &DropLocation);
 
-		DragFinish(DropInfo);
+			const UINT DroppedFileCount = DragQueryFileA(DropInfo, 0xFFFFFFFF, NULL, NULL);
+			for (UINT FileIndex = 0; FileIndex < DroppedFileCount; FileIndex++)
+			{
+				UINT PathSize = DragQueryFileA(DropInfo, FileIndex, NULL, 0);
+				if (PathSize > 0)
+				{
+					DropFileStruct.DropLocation = FVector2D(DropLocation.x, DropLocation.y);
 
-		return true;
+					char* DroppedFile = (char*)malloc(size_t(PathSize));
+					DragQueryFileA(DropInfo, FileIndex, DroppedFile, PathSize + 1);
 
-	default:
-		return false;
+					if (GetFileAttributesA(DroppedFile) != FILE_ATTRIBUTE_DIRECTORY)
+					{
+						DropFileStruct.FilePath = DroppedFile;
+						DropFileStruct.bIsFolder = false;
+					}
+
+					if (GetFileAttributesA(DroppedFile) == FILE_ATTRIBUTE_DIRECTORY)
+					{
+						DropFileStruct.FilePath = DroppedFile;
+						DropFileStruct.bIsFolder = true;
+					}
+
+					OutArray.Add(DropFileStruct);
+
+					free(DroppedFile);
+					DroppedFile = nullptr;
+				}
+			}
+
+			WindowManager->OnFileDrop(OutArray);
+			OutArray.Empty();
+
+			DragFinish(DropInfo);
+
+			return true;
+
+		default:
+			return false;
 	}
 }
