@@ -23,13 +23,14 @@ bool FDragDropHandler::ProcessMessage(HWND Hwnd, uint32 Message, WPARAM WParam, 
 	TCHAR* Buffer = (TCHAR*)malloc(BufferSize);
 	RegQueryValueEx(hKey, L"CurrentBuildNumber", 0, nullptr, reinterpret_cast<LPBYTE>(Buffer), &BufferSize);
 	int32 BuildNumber = FCString::Atoi(Buffer);
+	
+	free(Buffer);
+	Buffer = nullptr;
 
 	switch (Message)
 	{
-
 		case WM_ERASEBKGND:
-
-			return 0;
+			return false;
 
 		case WM_PAINT:
 		{
@@ -50,7 +51,7 @@ bool FDragDropHandler::ProcessMessage(HWND Hwnd, uint32 Message, WPARAM WParam, 
 		}
 		
 		case WM_DROPFILES:
-
+		{
 			// If message sender window is main window and user not want to get files on it, return false.
 			if (WindowManager->bAllowMainWindow == false)
 			{
@@ -99,6 +100,7 @@ bool FDragDropHandler::ProcessMessage(HWND Hwnd, uint32 Message, WPARAM WParam, 
 			DragFinish(DropInfo);
 
 			return true;
+		}
 
 		default:
 			return false;
