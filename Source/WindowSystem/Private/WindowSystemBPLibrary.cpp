@@ -362,6 +362,45 @@ bool UWindowSystemBPLibrary::ChangePlayerViewSize(const int32 PlayerId, FVector2
 	return CustomViewport->ChangePlayerViewSize(PlayerId, NewRatio, NewOrigin);
 }
 
+bool UWindowSystemBPLibrary::SetBackgroundColor(FLinearColor In_Color)
+{
+	UCustomViewport* CustomViewport = Cast<UCustomViewport>(GEngine->GameViewport.Get());
+
+	if (!CustomViewport)
+	{
+		return false;
+	}
+
+	CustomViewport->SetBackgroundColor(In_Color);
+	return true;
+}
+
+bool UWindowSystemBPLibrary::SetBackgroundTexture(UTexture2D* In_Texture)
+{
+	UCustomViewport* CustomViewport = Cast<UCustomViewport>(GEngine->GameViewport.Get());
+
+	if (!CustomViewport)
+	{
+		return false;
+	}
+
+	CustomViewport->SetBackgroundTexture(In_Texture);
+	return true;
+}
+
+bool UWindowSystemBPLibrary::SetGradient(FLinearColor Start, FLinearColor End)
+{
+	UCustomViewport* CustomViewport = Cast<UCustomViewport>(GEngine->GameViewport.Get());
+
+	if (!CustomViewport)
+	{
+		return false;
+	}
+
+	CustomViewport->SetGradient(Start, End);
+	return true;
+}
+
 bool UWindowSystemBPLibrary::ToggleWidgetState(UWidget* TargetWidget, ESlateVisibility OffMethod)
 {
 	if (!TargetWidget)

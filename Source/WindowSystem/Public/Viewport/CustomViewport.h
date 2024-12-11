@@ -29,7 +29,18 @@ UCLASS()
 class WINDOWSYSTEM_API UCustomViewport : public UGameViewportClient
 {
 	GENERATED_BODY()
-	
+
+protected:
+
+    int32 LastPlayerCount = 0;
+    
+    // 0 = Color, 1 = Gradient, 2 = Texture;
+    int32 BG_Type = 0;
+    FLinearColor GradientStart = FLinearColor::Black;
+    FLinearColor GradientEnd = FLinearColor::Black;
+    FLinearColor BG_Color = FLinearColor::Black;
+    UTexture2D* BG_Texture = nullptr;
+
 public:
 
 	UCustomViewport();
@@ -40,15 +51,19 @@ public:
 
     virtual void LayoutPlayers() override;
 
+    virtual void Draw(FViewport* In_Viewport, FCanvas* In_SceneCanvas) override;
+
+    FDelegateNewLayout DelegateNewLayout;
+
     // This is customized version of UGameViewportClient::SSSwapControllers which works on Shipping Builds.
     virtual bool PossesLocalPlayer(const int32 PlayerId, const int32 ControllerId = -1);
 
     virtual bool ChangePlayerViewSize(const int32 PlayerId, FVector2D NewRatio, FVector2D NewOrigin);
+    
+    virtual void SetBackgroundColor(FLinearColor In_Color);
 
-    FDelegateNewLayout DelegateNewLayout;
-
-protected:
-
-    int32 LastPlayerCount = 0;
+    virtual void SetBackgroundTexture(UTexture2D* In_Texture);
+    
+    virtual void SetGradient(FLinearColor Start, FLinearColor End);
 
 };

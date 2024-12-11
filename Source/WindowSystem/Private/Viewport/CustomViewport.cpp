@@ -3,6 +3,8 @@
 #include "Viewport/CustomViewport.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Engine/Canvas.h"
+#include "CanvasItem.h"
 
 UCustomViewport::UCustomViewport() : Super(FObjectInitializer::Get())
 {
@@ -159,6 +161,85 @@ void UCustomViewport::LayoutPlayers()
     }
 }
 
+void UCustomViewport::Draw(FViewport* In_Viewport, FCanvas* In_SceneCanvas)
+{
+    if (!In_Viewport || !In_SceneCanvas)
+    {
+        return;
+    }
+
+    if (this->BG_Type < 0 || this->BG_Type > 2)
+    {
+        return;
+    }
+
+    switch (this->BG_Type)
+    {
+        case 0: 
+        {
+            const FVector2D ViewportSize(In_Viewport->GetSizeXY());
+            FCanvasTileItem TileItem(FVector2D(0, 0), ViewportSize, this->BG_Color);
+            TileItem.BlendMode = SE_BLEND_Opaque;
+            In_SceneCanvas->DrawItem(TileItem);
+
+            break;
+        }
+
+        case 1:
+        {
+            const FVector2D ViewportSize(In_Viewport->GetSizeXY());
+            const FLinearColor TopLeft = this->GradientStart;
+            const FLinearColor BottomRight = this->GradientEnd;
+
+            const FVector2D PointA1(0, 0);
+            const FVector2D PointB1(ViewportSize.X, 0);
+            const FVector2D PointC1(0, ViewportSize.Y);
+
+            const FVector2D PointA2(ViewportSize.X, 0);
+            const FVector2D PointB2(ViewportSize.X, ViewportSize.Y);
+            const FVector2D PointC2(0, ViewportSize.Y);
+
+            FCanvasTriangleItem Triangle1(PointA1, PointB1, PointC1, nullptr);
+            Triangle1.SetColor(TopLeft);
+            Triangle1.BlendMode = SE_BLEND_Translucent;
+
+            FCanvasTriangleItem Triangle2(PointA2, PointB2, PointC2, nullptr);
+            Triangle2.SetColor(BottomRight);
+            Triangle2.BlendMode = SE_BLEND_Translucent;
+
+            In_SceneCanvas->DrawItem(Triangle1);
+            In_SceneCanvas->DrawItem(Triangle2);
+
+            break;
+        }
+
+        case 2:
+        {
+            if (!IsValid(this->BG_Texture))
+            {
+                break;
+            }
+
+            const FVector2D ViewportSize(In_Viewport->GetSizeXY());
+            In_SceneCanvas->DrawTile(0, 0, ViewportSize.X, ViewportSize.Y, 0, 0, 1, 1, FLinearColor::White, this->BG_Texture->GetResource());
+            
+            break;
+        }
+        
+        default:
+        {
+            const FVector2D ViewportSize(In_Viewport->GetSizeXY());
+            FCanvasTileItem TileItem(FVector2D(0, 0), ViewportSize, this->BG_Color);
+            TileItem.BlendMode = SE_BLEND_Opaque;
+            In_SceneCanvas->DrawItem(TileItem);
+
+            break;
+        }
+    }
+
+    Super::Draw(In_Viewport, In_SceneCanvas);
+}
+
 bool UCustomViewport::PossesLocalPlayer(const int32 PlayerId, const int32 ControllerId)
 {
     UEngine* const REF_Engine = GameInstance->GetEngine();
@@ -200,4 +281,28 @@ bool UCustomViewport::ChangePlayerViewSize(const int32 PlayerId, FVector2D NewRa
     PlayerList[PlayerId]->Origin = NewOrigin;
 
     return true;
+}
+
+void UCustomViewport::SetBackgroundColor(FLinearColor In_Color)
+{
+    this->BG_Color = In_Color;
+    this->BG_Type = 0;
+}
+
+void UCustomViewport::SetBackgroundTexture(UTexture2D* In_Texture)
+{
+    if (!IsValid(In_Texture))
+    {
+        return;
+    }
+
+    this->BG_Texture = In_Texture;
+    this->BG_Type = 2;
+}
+
+void UCustomViewport::SetGradient(FLinearColor Start, FLinearColor End)
+{
+    this->GradientStart = Start;
+    this->GradientEnd = End;
+    this->BG_Type = 1;
 }
