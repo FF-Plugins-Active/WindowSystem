@@ -9,7 +9,7 @@
 #include "Widgets/SWidget.h"				// Add Widget to Window.
 #include "Slate/WidgetRenderer.h"			// Take Screenshot of Window
 #include "Runtime/UMG/Public/UMG.h"         // Take Screenshot of Window
-
+#include "Blueprint/UserWidget.h"
 // Custom Includes.
 #include "Viewport/CustomViewport.h"
 
@@ -72,16 +72,10 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Change Player View Size", ToolTip = "", Keywords = "change, player, view, viewport, size, position, ratio"), Category = "Window System")
 	static bool ChangePlayerViewSize(const int32 PlayerId, FVector2D NewRatio, FVector2D NewOrigin);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Background Color", ToolTip = "", Keywords = "change, player, view, viewport, bg, background, color"), Category = "Window System")
-	static bool SetBackgroundColor(FLinearColor In_Color);
-
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Background Texture", ToolTip = "", Keywords = "change, player, view, viewport, bg, background, texture"), Category = "Window System")
-	static bool SetBackgroundTexture(UTexture2D* In_Texture);
-
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Background Gradient", ToolTip = "", Keywords = "change, player, view, viewport, bg, background, gradient"), Category = "Window System")
-	static bool SetGradient(FLinearColor Start, FLinearColor End);
-
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Toggle Widget State", ToolTip = "", Keywords = "toggle, switch, widget, state, visible, hidden, collapse"), Category = "Window System")
 	static bool ToggleWidgetState(UWidget* TargetWidget, ESlateVisibility OffMethod = ESlateVisibility::Collapsed);
+
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Background Material", ToolTip = "", Keywords = "set, background, material, layout, customize, splitscreen, viewport"), Category = "Window System")
+	static bool SetBackgroundMaterial(UMaterialInterface* In_Material);
 
 };

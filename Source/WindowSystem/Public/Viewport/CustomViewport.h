@@ -17,10 +17,10 @@ struct WINDOWSYSTEM_API FPlayerViews
 public:
 
     UPROPERTY(BlueprintReadOnly)
-    FVector2D Size;
+    FVector2D Size = FVector2D();
 
     UPROPERTY(BlueprintReadOnly)
-    FVector2D Position;
+    FVector2D Position = FVector2D();
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDelegateNewLayout, const TArray<FPlayerViews>&, Array_Views);
@@ -32,14 +32,11 @@ class WINDOWSYSTEM_API UCustomViewport : public UGameViewportClient
 
 protected:
 
-    int32 LastPlayerCount = 0;
-    
-    // 0 = Color, 1 = Gradient, 2 = Texture;
-    int32 BG_Type = 0;
-    FLinearColor GradientStart = FLinearColor::Black;
-    FLinearColor GradientEnd = FLinearColor::Black;
-    FLinearColor BG_Color = FLinearColor::Black;
-    UTexture2D* BG_Texture = nullptr;
+    /*
+    * Material needs to be User Interface type.
+    * TODO: We need to calculate gameview maskings.
+    */
+    UMaterialInterface* BG_Material = nullptr;
 
 public:
 
@@ -59,11 +56,8 @@ public:
     virtual bool PossesLocalPlayer(const int32 PlayerId, const int32 ControllerId = -1);
 
     virtual bool ChangePlayerViewSize(const int32 PlayerId, FVector2D NewRatio, FVector2D NewOrigin);
-    
-    virtual void SetBackgroundColor(FLinearColor In_Color);
 
-    virtual void SetBackgroundTexture(UTexture2D* In_Texture);
-    
-    virtual void SetGradient(FLinearColor Start, FLinearColor End);
+    virtual bool SetBackgrounMaterial(UMaterialInterface* In_Material);
+    virtual UMaterialInterface* GetBackgroundMaterial();
 
 };
