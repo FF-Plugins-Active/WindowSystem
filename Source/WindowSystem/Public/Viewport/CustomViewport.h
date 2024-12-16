@@ -32,8 +32,15 @@ class WINDOWSYSTEM_API UCustomViewport : public UGameViewportClient
 
 protected:
 
+    // If there is a new player, we need to reset views.
+    int32 LastPlayerCount = 0;
+
+    // Views shouldn't reset to defaults if there is no change.
     bool bIsInitialsLoaded = false;
+
+    // We use this to forcefully stop background rendering. For example there is only one view and it is in full screen state.
     bool bStopBackground = false;
+
     UMaterialInterface* BG_Material = nullptr;
 
 public:

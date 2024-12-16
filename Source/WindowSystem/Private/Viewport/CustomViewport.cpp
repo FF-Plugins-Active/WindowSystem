@@ -38,11 +38,15 @@ void UCustomViewport::LayoutPlayers()
 
     if (Player_Count == 1)
     {
-        if (!this->bIsInitialsLoaded)
+        if (!this->bIsInitialsLoaded || this->LastPlayerCount != Player_Count)
         {
+            this->bIsInitialsLoaded = false;
+
             PlayerList[0]->Size = FVector2D(0.9f);
             PlayerList[0]->Origin = FVector2D(0.05);
+            
             this->bIsInitialsLoaded = true;
+            this->LastPlayerCount = Player_Count;
         }
         
         for (int32 PlayerIdx = 0; PlayerIdx < Player_Count; PlayerIdx++)
@@ -59,8 +63,10 @@ void UCustomViewport::LayoutPlayers()
 
     else if (Player_Count == 2)
     {
-        if (!this->bIsInitialsLoaded)
+        if (!this->bIsInitialsLoaded || this->LastPlayerCount != Player_Count)
         {
+            this->bIsInitialsLoaded = false;
+
             // Player 1 = Right
 
             PlayerList[0]->Size = FVector2D(0.425, 0.9);
@@ -72,6 +78,7 @@ void UCustomViewport::LayoutPlayers()
             PlayerList[1]->Origin = FVector2D(0.05);
 
             this->bIsInitialsLoaded = true;
+            this->LastPlayerCount = Player_Count;
         }
 
         for (int32 PlayerIdx = 0; PlayerIdx < Player_Count; PlayerIdx++)
@@ -88,8 +95,10 @@ void UCustomViewport::LayoutPlayers()
 
     else if (Player_Count == 3)
     {
-        if (!this->bIsInitialsLoaded)
+        if (!this->bIsInitialsLoaded || this->LastPlayerCount != Player_Count)
         {
+            this->bIsInitialsLoaded = false;
+
             // Player 1 = Right
 
             PlayerList[0]->Size = FVector2D(0.425, 0.9);
@@ -106,6 +115,7 @@ void UCustomViewport::LayoutPlayers()
             PlayerList[2]->Origin = FVector2D(0.05, 0.525);
 
             this->bIsInitialsLoaded = true;
+            this->LastPlayerCount = Player_Count;
         }
 
         for (int32 PlayerIdx = 0; PlayerIdx < Player_Count; PlayerIdx++)
@@ -122,8 +132,10 @@ void UCustomViewport::LayoutPlayers()
 
     else if (Player_Count == 4)
     {
-        if (!this->bIsInitialsLoaded)
+        if (!this->bIsInitialsLoaded || this->LastPlayerCount != Player_Count)
         {
+            this->bIsInitialsLoaded = false;
+
             // Player 1 = Bottom Right
 
             PlayerList[0]->Size = FVector2D(0.425);
@@ -145,6 +157,7 @@ void UCustomViewport::LayoutPlayers()
             PlayerList[3]->Origin = FVector2D(0.05, 0.525);
 
             this->bIsInitialsLoaded = true;
+            this->LastPlayerCount = Player_Count;
         }
 
         for (int32 PlayerIdx = 0; PlayerIdx < Player_Count; PlayerIdx++)
