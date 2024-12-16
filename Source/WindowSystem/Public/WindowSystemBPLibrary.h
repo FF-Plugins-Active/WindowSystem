@@ -75,7 +75,10 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Toggle Widget State", ToolTip = "", Keywords = "toggle, switch, widget, state, visible, hidden, collapse"), Category = "Window System")
 	static bool ToggleWidgetState(UWidget* TargetWidget, ESlateVisibility OffMethod = ESlateVisibility::Collapsed);
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Background Material", ToolTip = "", Keywords = "set, background, material, layout, customize, splitscreen, viewport"), Category = "Window System")
+	/*
+	* @param Views Key = View position ; Value = View size.
+	*/
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Background Material", Keywords = "set, background, material, layout, customize, splitscreen, viewport"), Category = "Window System")
 	static bool SetBackgroundMaterial(UMaterialInterface* MAT_BG, UMaterialInterface* MAT_Brush, FName CRT_Name, TMap<FVector2D, FVector2D> Views);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Toggle Background", ToolTip = "We suggest you to use this when there is only one view and it is fullscreen.", Keywords = "background, layout, customize, splitscreen, viewport, toggle"), Category = "Window System")
