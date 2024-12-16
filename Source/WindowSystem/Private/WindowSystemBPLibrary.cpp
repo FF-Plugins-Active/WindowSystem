@@ -445,3 +445,16 @@ bool UWindowSystemBPLibrary::SetBackgroundMaterial(UMaterialInterface* MAT_BG, U
 
 	return CustomViewport->SetBackgrounMaterial(MI_BG);
 }
+
+bool UWindowSystemBPLibrary::ToggleBackground(bool bStop)
+{
+	UCustomViewport* CustomViewport = Cast<UCustomViewport>(GEngine->GameViewport.Get());
+
+	if (!CustomViewport)
+	{
+		return false;
+	}
+
+	CustomViewport->ToggleBackground(bStop);
+	return true;
+}

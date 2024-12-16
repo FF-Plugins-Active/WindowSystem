@@ -24,12 +24,12 @@ void UCustomViewport::Tick(float DeltaTime)
 void UCustomViewport::LayoutPlayers()
 {
     UpdateActiveSplitscreenType();
-    
+
     const ESplitScreenType::Type SplitType = GetCurrentSplitscreenConfiguration();
     const TArray<ULocalPlayer*>& PlayerList = GetOuterUEngine()->GetGamePlayers(this);
     const size_t Player_Count = PlayerList.Num();
 
-    if (Player_Count == 0)
+    if (Player_Count <= 0)
     {
         return;
     }
@@ -38,11 +38,13 @@ void UCustomViewport::LayoutPlayers()
 
     if (Player_Count == 1)
     {
-        PlayerList[0]->Size.X = 0.9;
-        PlayerList[0]->Size.Y = 0.9;
-        PlayerList[0]->Origin.X = 0.05;
-        PlayerList[0]->Origin.Y = 0.05;
-     
+        if (!this->bIsInitialsLoaded)
+        {
+            PlayerList[0]->Size = FVector2D(0.9f);
+            PlayerList[0]->Origin = FVector2D(0.05);
+            this->bIsInitialsLoaded = true;
+        }
+        
         for (int32 PlayerIdx = 0; PlayerIdx < Player_Count; PlayerIdx++)
         {
             FPlayerViews View;
@@ -57,19 +59,20 @@ void UCustomViewport::LayoutPlayers()
 
     else if (Player_Count == 2)
     {
-        // Player 1 = Right
+        if (!this->bIsInitialsLoaded)
+        {
+            // Player 1 = Right
 
-        PlayerList[0]->Size.X = 0.425;
-        PlayerList[0]->Size.Y = 0.9;
-        PlayerList[0]->Origin.X = 0.525;
-        PlayerList[0]->Origin.Y = 0.05;
+            PlayerList[0]->Size = FVector2D(0.425, 0.9);
+            PlayerList[0]->Origin = FVector2D(0.525, 0.05);
 
-        // Player 2 = Left
+            // Player 2 = Left
 
-        PlayerList[1]->Size.X = 0.425;
-        PlayerList[1]->Size.Y = 0.9;
-        PlayerList[1]->Origin.X = 0.05;
-        PlayerList[1]->Origin.Y = 0.05;
+            PlayerList[1]->Size = FVector2D(0.425, 0.9);
+            PlayerList[1]->Origin = FVector2D(0.05);
+
+            this->bIsInitialsLoaded = true;
+        }
 
         for (int32 PlayerIdx = 0; PlayerIdx < Player_Count; PlayerIdx++)
         {
@@ -85,26 +88,25 @@ void UCustomViewport::LayoutPlayers()
 
     else if (Player_Count == 3)
     {
-        // Player 1 = Right
+        if (!this->bIsInitialsLoaded)
+        {
+            // Player 1 = Right
 
-        PlayerList[0]->Size.X = 0.425;
-        PlayerList[0]->Size.Y = 0.9;
-        PlayerList[0]->Origin.X = 0.525;
-        PlayerList[0]->Origin.Y = 0.05;
+            PlayerList[0]->Size = FVector2D(0.425, 0.9);
+            PlayerList[0]->Origin = FVector2D(0.525, 0.5);
 
-        // Player 2 = Top Left
+            // Player 2 = Top Left
 
-        PlayerList[1]->Size.X = 0.425;
-        PlayerList[1]->Size.Y = 0.425;
-        PlayerList[1]->Origin.X = 0.05;
-        PlayerList[1]->Origin.Y = 0.05;
+            PlayerList[1]->Size = FVector2D(0.425);
+            PlayerList[1]->Origin = FVector2D(0.05);
 
-        //Player 3 = Bottom Left
+            //Player 3 = Bottom Left
 
-        PlayerList[2]->Size.X = 0.425;
-        PlayerList[2]->Size.Y = 0.425;
-        PlayerList[2]->Origin.X = 0.05;
-        PlayerList[2]->Origin.Y = 0.525;
+            PlayerList[2]->Size = FVector2D(0.425);
+            PlayerList[2]->Origin = FVector2D(0.05, 0.525);
+
+            this->bIsInitialsLoaded = true;
+        }
 
         for (int32 PlayerIdx = 0; PlayerIdx < Player_Count; PlayerIdx++)
         {
@@ -120,33 +122,30 @@ void UCustomViewport::LayoutPlayers()
 
     else if (Player_Count == 4)
     {
-        // Player 1 = Bottom Right
+        if (!this->bIsInitialsLoaded)
+        {
+            // Player 1 = Bottom Right
 
-        PlayerList[0]->Size.X = 0.425;
-        PlayerList[0]->Size.Y = 0.425;
-        PlayerList[0]->Origin.X = 0.525;
-        PlayerList[0]->Origin.Y = 0.525;
+            PlayerList[0]->Size = FVector2D(0.425);
+            PlayerList[0]->Origin = FVector2D(0.525);
 
-        // Player 2 = Top Right
+            // Player 2 = Top Right
 
-        PlayerList[1]->Size.X = 0.425;
-        PlayerList[1]->Size.Y = 0.425;
-        PlayerList[1]->Origin.X = 0.525;
-        PlayerList[1]->Origin.Y = 0.05;
+            PlayerList[1]->Size = FVector2D(0.425);
+            PlayerList[1]->Origin = FVector2D(0.525, 0.05);
 
-        // Player 3 = Top Left
+            // Player 3 = Top Left
 
-        PlayerList[2]->Size.X = 0.425;
-        PlayerList[2]->Size.Y = 0.425;
-        PlayerList[2]->Origin.X = 0.05;
-        PlayerList[2]->Origin.Y = 0.05;
+            PlayerList[2]->Size = FVector2D(0.425);
+            PlayerList[2]->Origin = FVector2D(0.05);
 
-        // Player 4 = Bottom Left
+            // Player 4 = Bottom Left
 
-        PlayerList[3]->Size.X = 0.425;
-        PlayerList[3]->Size.Y = 0.425;
-        PlayerList[3]->Origin.X = 0.05;
-        PlayerList[3]->Origin.Y = 0.525;
+            PlayerList[3]->Size = FVector2D(0.425);
+            PlayerList[3]->Origin = FVector2D(0.05, 0.525);
+
+            this->bIsInitialsLoaded = true;
+        }
 
         for (int32 PlayerIdx = 0; PlayerIdx < Player_Count; PlayerIdx++)
         {
@@ -160,24 +159,25 @@ void UCustomViewport::LayoutPlayers()
         return;
     }
 
+    else if (Player_Count > 4)
+    {
+        UE_LOG(LogTemp, Fatal, TEXT("Player count shouldn't exceed 4. Requested number = %d"), Player_Count);
+        return;
+    }
+
+    /*
     for (int32 PlayerIdx = 0; PlayerIdx < Player_Count; PlayerIdx++)
     {
         if (SplitType < SplitscreenInfo.Num() && PlayerIdx < SplitscreenInfo[SplitType].PlayerData.Num())
         {
-            PlayerList[PlayerIdx]->Size.X = SplitscreenInfo[SplitType].PlayerData[PlayerIdx].SizeX;
-            PlayerList[PlayerIdx]->Size.Y = SplitscreenInfo[SplitType].PlayerData[PlayerIdx].SizeY;
-            
-            PlayerList[PlayerIdx]->Origin.X = SplitscreenInfo[SplitType].PlayerData[PlayerIdx].OriginX;
-            PlayerList[PlayerIdx]->Origin.Y = SplitscreenInfo[SplitType].PlayerData[PlayerIdx].OriginY;
+            PlayerList[PlayerIdx]->Size = FVector2D(SplitscreenInfo[SplitType].PlayerData[PlayerIdx].SizeX, SplitscreenInfo[SplitType].PlayerData[PlayerIdx].SizeY);
+            PlayerList[PlayerIdx]->Origin = FVector2D(SplitscreenInfo[SplitType].PlayerData[PlayerIdx].OriginX, SplitscreenInfo[SplitType].PlayerData[PlayerIdx].OriginY);
         }
 
         else
         {
-            PlayerList[PlayerIdx]->Size.X = 0.f;
-            PlayerList[PlayerIdx]->Size.Y = 0.f;
-            
-            PlayerList[PlayerIdx]->Origin.X = 0.f;
-            PlayerList[PlayerIdx]->Origin.Y = 0.f;
+            PlayerList[PlayerIdx]->Size = FVector2D(0.f);
+            PlayerList[PlayerIdx]->Origin = FVector2D(0.f);
         }
 
         FPlayerViews View;
@@ -187,6 +187,7 @@ void UCustomViewport::LayoutPlayers()
     }
 
     DelegateNewLayout.Broadcast(Array_Views);
+    */
 }
 
 void UCustomViewport::Draw(FViewport* In_Viewport, FCanvas* In_SceneCanvas)
@@ -195,37 +196,16 @@ void UCustomViewport::Draw(FViewport* In_Viewport, FCanvas* In_SceneCanvas)
 
     // Put your logic to change background after Super::Draw()
 
-    if (IsValid(this->BG_Material))
+    if (IsValid(this->BG_Material) && this->BG_Material->GetRenderProxy() && !this->bStopBackground)
     {
-        if (this->BG_Material->GetRenderProxy())
-        {
-            const FVector2D RectSize = In_Viewport->GetSizeXY();
-            const FVector2D UV_Top_Left = FVector2D(0.0f, 0.0f);
-            const FVector2D UV_Bottom_Right = FVector2D(1.0f, 1.0f);
+        const FVector2D RectSize = In_Viewport->GetSizeXY();
+        const FVector2D UV_Top_Left = FVector2D(0.0f, 0.0f);
+        const FVector2D UV_Bottom_Right = FVector2D(1.0f, 1.0f);
 
-            FCanvasTileItem TileItem(FVector2D(0, 0), this->BG_Material->GetRenderProxy(), RectSize, UV_Top_Left, UV_Bottom_Right);
-            TileItem.BlendMode = SE_BLEND_Opaque;
+        FCanvasTileItem TileItem(FVector2D(0, 0), this->BG_Material->GetRenderProxy(), RectSize, UV_Top_Left, UV_Bottom_Right);
+        TileItem.BlendMode = SE_BLEND_Opaque;
 
-            In_SceneCanvas->DrawItem(TileItem);
-        }
-    }
-
-    if (!this->Logos.IsEmpty())
-    {
-        for (const FBackgroundLogo EachLogo : this->Logos)
-        {
-            if (EachLogo.MAT_Logo->GetRenderProxy())
-            {
-                const FVector2D RectSize = EachLogo.Transform.Position;
-                const FVector2D UV_Top_Left = FVector2D(0.0f, 0.0f);
-                const FVector2D UV_Bottom_Right = FVector2D(1.0f, 1.0f);
-
-                FCanvasTileItem TileItem(EachLogo.Transform.Position, EachLogo.MAT_Logo->GetRenderProxy(), RectSize, UV_Top_Left, UV_Bottom_Right);
-                TileItem.BlendMode = EachLogo.bIsMasked ? SE_BLEND_Masked : SE_BLEND_Opaque;
-
-                In_SceneCanvas->DrawItem(TileItem);
-            }
-        }
+        In_SceneCanvas->DrawItem(TileItem);
     }
 }
 
@@ -293,23 +273,7 @@ UMaterialInterface* UCustomViewport::GetBackgroundMaterial()
     return this->BG_Material;
 }
 
-bool UCustomViewport::SetLogos(TArray<FBackgroundLogo> In_Logos)
+void UCustomViewport::ToggleBackground(bool bStop)
 {
-    if (In_Logos.IsEmpty())
-    {
-        return false;
-    }
-
-    this->Logos = In_Logos;
-    return true;
-}
-
-TArray<FBackgroundLogo> UCustomViewport::GetLogos()
-{
-    if (this->Logos.IsEmpty())
-    {
-        return TArray<FBackgroundLogo>();
-    }
-
-    return this->Logos;
+    this->bStopBackground = bStop;
 }

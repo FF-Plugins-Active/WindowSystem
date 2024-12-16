@@ -23,24 +23,6 @@ public:
     FVector2D Position = FVector2D();
 };
 
-USTRUCT(BlueprintType)
-struct WINDOWSYSTEM_API FBackgroundLogo
-{
-    GENERATED_BODY()
-
-public:
-
-    UPROPERTY(BlueprintReadWrite)
-    FPlayerViews Transform = FPlayerViews();
-
-    UPROPERTY(BlueprintReadWrite)
-    UMaterialInterface* MAT_Logo = nullptr;
-
-    UPROPERTY(BlueprintReadWrite)
-    bool bIsMasked = true;
-
-};
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDelegateNewLayout, const TArray<FPlayerViews>&, Array_Views);
 
 UCLASS()
@@ -50,8 +32,9 @@ class WINDOWSYSTEM_API UCustomViewport : public UGameViewportClient
 
 protected:
 
+    bool bIsInitialsLoaded = false;
+    bool bStopBackground = false;
     UMaterialInterface* BG_Material = nullptr;
-    TArray<FBackgroundLogo> Logos = TArray<FBackgroundLogo>();
 
 public:
 
@@ -74,8 +57,6 @@ public:
 
     virtual bool SetBackgrounMaterial(UMaterialInterface* In_Material);
     virtual UMaterialInterface* GetBackgroundMaterial();
-    
-    virtual bool SetLogos(TArray<FBackgroundLogo> In_Logos);
-    virtual TArray<FBackgroundLogo> GetLogos();
+    virtual void ToggleBackground(bool bStop);
 
 };
