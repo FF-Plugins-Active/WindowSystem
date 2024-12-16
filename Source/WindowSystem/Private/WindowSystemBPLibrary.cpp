@@ -1,6 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "WindowSystemBPLibrary.h"
+
+#include "Kismet/KismetRenderingLibrary.h"
+
 #include "WindowSystem.h"
 
 UWindowSystemBPLibrary::UWindowSystemBPLibrary(const FObjectInitializer& ObjectInitializer)
@@ -384,9 +387,14 @@ bool UWindowSystemBPLibrary::ToggleWidgetState(UWidget* TargetWidget, ESlateVisi
 	}
 }
 
-bool UWindowSystemBPLibrary::SetBackgroundMaterial(UMaterialInterface* In_Material)
+bool UWindowSystemBPLibrary::SetBackgroundMaterial(UMaterialInterface* MAT_BG, UMaterialInterface* MAT_Brush, FVector2D CRT_Size, FName CRT_Name, TMap<FVector2D, FVector2D> Views)
 {
-	if (!IsValid(In_Material))
+	if (Views.IsEmpty())
+	{
+		return false;
+	}
+
+	if (!IsValid(MAT_BG) || !IsValid(MAT_Brush))
 	{
 		return false;
 	}
@@ -398,5 +406,34 @@ bool UWindowSystemBPLibrary::SetBackgroundMaterial(UMaterialInterface* In_Materi
 		return false;
 	}
 
-	return CustomViewport->SetBackgrounMaterial(In_Material);
+	UWorld* World = GEngine->GetCurrentPlayWorld();
+
+	if (!IsValid(World))
+	{
+		return false;
+	}
+
+	UCanvasRenderTarget2D* CRT = UCanvasRenderTarget2D::CreateCanvasRenderTarget2D(World, UCanvasRenderTarget2D::StaticClass(), CRT_Size.X, CRT_Size.Y);
+
+	if (!IsValid(CRT))
+	{
+		return false;
+	}
+
+	UCanvas* Canvas = nullptr;
+	FVector2D Size = FVector2D();
+	FDrawToRenderTargetContext Context = FDrawToRenderTargetContext();
+	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(World, CRT, Canvas, Size, Context);
+
+	for (const TPair<FVector2D, FVector2D> Each_View : Views)
+	{
+		Canvas->K2_DrawMaterial(MAT_Brush, Each_View.Key, Each_View.Value, FVector2D(0.f), FVector2D(1.f));
+	}
+
+	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(World, Context);
+
+	UMaterialInstanceDynamic* MI_BG = UMaterialInstanceDynamic::Create(MAT_BG, World);
+	MI_BG->SetTextureParameterValue(CRT_Name, CRT);
+
+	return CustomViewport->SetBackgrounMaterial(MI_BG);
 }

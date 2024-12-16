@@ -76,6 +76,6 @@ class UWindowSystemBPLibrary : public UBlueprintFunctionLibrary
 	static bool ToggleWidgetState(UWidget* TargetWidget, ESlateVisibility OffMethod = ESlateVisibility::Collapsed);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Set Background Material", ToolTip = "", Keywords = "set, background, material, layout, customize, splitscreen, viewport"), Category = "Window System")
-	static bool SetBackgroundMaterial(UMaterialInterface* In_Material);
+	static bool SetBackgroundMaterial(UMaterialInterface* MAT_BG, UMaterialInterface* MAT_Brush, FVector2D CRT_Size, FName CRT_Name, TMap<FVector2D, FVector2D> Views);
 
 };

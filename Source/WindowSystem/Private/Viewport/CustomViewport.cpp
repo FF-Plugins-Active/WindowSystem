@@ -193,21 +193,40 @@ void UCustomViewport::Draw(FViewport* In_Viewport, FCanvas* In_SceneCanvas)
 {
     Super::Draw(In_Viewport, In_SceneCanvas);
 
-    if (!IsValid(this->BG_Material))
-    {
-        return;
-    }
-
     // Put your logic to change background after Super::Draw()
 
-    const FVector2D RectSize = In_Viewport->GetSizeXY();
-    const FVector2D UV_Top_Left = FVector2D(0.0f, 0.0f);
-    const FVector2D UV_Bottom_Right = FVector2D(1.0f, 1.0f);
+    if (IsValid(this->BG_Material))
+    {
+        if (this->BG_Material->GetRenderProxy())
+        {
+            const FVector2D RectSize = In_Viewport->GetSizeXY();
+            const FVector2D UV_Top_Left = FVector2D(0.0f, 0.0f);
+            const FVector2D UV_Bottom_Right = FVector2D(1.0f, 1.0f);
 
-    FCanvasTileItem TileItem(FVector2D(0, 0), this->BG_Material->GetRenderProxy(), RectSize, UV_Top_Left, UV_Bottom_Right);
-    TileItem.BlendMode = SE_BLEND_Opaque;
+            FCanvasTileItem TileItem(FVector2D(0, 0), this->BG_Material->GetRenderProxy(), RectSize, UV_Top_Left, UV_Bottom_Right);
+            TileItem.BlendMode = SE_BLEND_Opaque;
 
-    In_SceneCanvas->DrawItem(TileItem);
+            In_SceneCanvas->DrawItem(TileItem);
+        }
+    }
+
+    if (!this->Logos.IsEmpty())
+    {
+        for (const FBackgroundLogo EachLogo : this->Logos)
+        {
+            if (EachLogo.MAT_Logo->GetRenderProxy())
+            {
+                const FVector2D RectSize = EachLogo.Transform.Position;
+                const FVector2D UV_Top_Left = FVector2D(0.0f, 0.0f);
+                const FVector2D UV_Bottom_Right = FVector2D(1.0f, 1.0f);
+
+                FCanvasTileItem TileItem(EachLogo.Transform.Position, EachLogo.MAT_Logo->GetRenderProxy(), RectSize, UV_Top_Left, UV_Bottom_Right);
+                TileItem.BlendMode = EachLogo.bIsMasked ? SE_BLEND_Masked : SE_BLEND_Opaque;
+
+                In_SceneCanvas->DrawItem(TileItem);
+            }
+        }
+    }
 }
 
 bool UCustomViewport::PossesLocalPlayer(const int32 PlayerId, const int32 ControllerId)
@@ -272,4 +291,25 @@ UMaterialInterface* UCustomViewport::GetBackgroundMaterial()
     }
 
     return this->BG_Material;
+}
+
+bool UCustomViewport::SetLogos(TArray<FBackgroundLogo> In_Logos)
+{
+    if (In_Logos.IsEmpty())
+    {
+        return false;
+    }
+
+    this->Logos = In_Logos;
+    return true;
+}
+
+TArray<FBackgroundLogo> UCustomViewport::GetLogos()
+{
+    if (this->Logos.IsEmpty())
+    {
+        return TArray<FBackgroundLogo>();
+    }
+
+    return this->Logos;
 }
