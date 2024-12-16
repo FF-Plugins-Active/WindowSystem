@@ -53,12 +53,7 @@ protected:
 
 	virtual void AddDragDropHandlerToMV();
 
-	virtual void RemoveDragDropHandlerFromMV();
-
-// LAYOUT SYSTEM.
-protected:
-
-	virtual void DetectLayoutChanges();
+	virtual void RemoveDragDropHandlerFromMV();	
 
 // CURSOR HOOK FOR POSITION AND COLOR
 protected:
@@ -104,9 +99,6 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Window System|Events")
 	void OnCursorPosColor(FVector2D const& Position, FLinearColor const& Color);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnLayoutChanged(TArray<FPlayerViews> const& Array_Views);
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Close All Windows", Keywords = "close, all, window"), Category = "Window System")
 	virtual bool CloseAllWindows();

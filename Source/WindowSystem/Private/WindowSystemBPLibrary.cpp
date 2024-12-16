@@ -387,7 +387,7 @@ bool UWindowSystemBPLibrary::ToggleWidgetState(UWidget* TargetWidget, ESlateVisi
 	}
 }
 
-bool UWindowSystemBPLibrary::SetBackgroundMaterial(UMaterialInterface* MAT_BG, UMaterialInterface* MAT_Brush, FVector2D CRT_Size, FName CRT_Name, TMap<FVector2D, FVector2D> Views)
+bool UWindowSystemBPLibrary::SetBackgroundMaterial(UMaterialInterface* MAT_BG, UMaterialInterface* MAT_Brush, FName CRT_Name, TMap<FVector2D, FVector2D> Views)
 {
 	if (Views.IsEmpty())
 	{
@@ -409,6 +409,14 @@ bool UWindowSystemBPLibrary::SetBackgroundMaterial(UMaterialInterface* MAT_BG, U
 	UWorld* World = GEngine->GetCurrentPlayWorld();
 
 	if (!IsValid(World))
+	{
+		return false;
+	}
+
+	FVector2D CRT_Size;
+	CustomViewport->GetViewportSize(CRT_Size);
+
+	if (CRT_Size == FVector2D(0.f))
 	{
 		return false;
 	}

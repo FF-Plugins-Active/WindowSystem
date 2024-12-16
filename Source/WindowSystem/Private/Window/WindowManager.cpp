@@ -4,7 +4,6 @@
 
 // Custom Includes.
 #include "Window/EachWindow_SWindow.h"		// CloseAllWindows -> Destrow window actor.
-#include "Viewport/CustomViewport.h"
 
 // Sets default values.
 AWindowManager::AWindowManager()
@@ -24,7 +23,6 @@ void AWindowManager::BeginPlay()
 		ActorPointer = (void*)this;
 	}
 
-	this->DetectLayoutChanges();
 	Super::BeginPlay();
 }
 
@@ -164,18 +162,6 @@ bool AWindowManager::Read_Cursor_Infos()
 	MouseHook_Color = SetWindowsHookEx(WH_MOUSE_LL, AWindowManager::MouseHookCallback, NULL, 0);
 
 	return true;
-}
-
-void AWindowManager::DetectLayoutChanges()
-{
-	UCustomViewport* CustomViewport = Cast<UCustomViewport>(GEngine->GameViewport.Get());
-
-	if (!CustomViewport)
-	{
-		return;
-	}
-
-	CustomViewport->DelegateNewLayout.AddUniqueDynamic(this, &ThisClass::OnLayoutChanged);
 }
 
 bool AWindowManager::ToggleWindowState(FName InTargetWindow, bool bFlashWindow)
